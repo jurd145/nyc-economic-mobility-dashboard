@@ -14,13 +14,10 @@
     }
   </script>
   <style>
-    body { background: #ffffff; color: #1a1a1a; font-family: 'Inter', sans-serif; margin: 0; }
+    body { background: #fafafa; color: #1a1a1a; font-family: 'Inter', sans-serif; margin: 0; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #f7f7f5; }
     ::-webkit-scrollbar-thumb { background: #cccccc; border-radius: 3px; }
-    .nav-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; background: transparent; border: none; border-left: 3px solid transparent; cursor: pointer; }
-    .nav-btn:hover { background: #eeeeeb; }
-    .nav-btn.active { background: #ffffff; border-left-color: #1a1a1a; }
     .metric-card { background: #ffffff; border: 1px solid #e8e8e5; padding: 16px; transition: border-color 0.15s, background 0.15s; cursor: default; }
     .metric-card:hover { border-color: #cccccc; background: #f7f7f5; }
     .chart-section { background: #ffffff; border: 1px solid #e8e8e5; padding: 20px; margin-bottom: 16px; }
@@ -39,46 +36,51 @@
     #content { transition: opacity 0.15s ease; }
     .findings-panel { background: #f7f7f5; border-left: 3px solid #1a1a1a; padding: 16px 20px; margin-bottom: 16px; border-radius: 0 4px 4px 0; }
     .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+    .nav-tab { font-size: 13px; font-weight: 500; color: #888888; padding: 10px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
+    .nav-tab:hover { color: #333333; }
+    .nav-tab.active { color: #1a1a1a; font-weight: 600; border-bottom-color: #1a1a1a; }
+    #site-header { position: sticky; top: 0; z-index: 50; background: #ffffff; }
+    #title-link { cursor: pointer; transition: opacity 0.15s; }
+    #title-link:hover { opacity: 0.7; }
     @media print {
       body { background: #fff !important; color: #000 !important; }
-      #sidebar { display: none !important; }
+      #site-header { position: static !important; }
       #content { padding: 12px !important; }
       .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
-      .nav-btn { display: none !important; }
+      #nav-bar { display: none !important; }
     }
-    @media (max-width: 900px) {
-      #sidebar { width: 180px !important; }
+    @media (max-width: 768px) {
+      .home-grid { grid-template-columns: 1fr !important; }
+      #nav-bar { gap: 20px !important; }
     }
   </style>
 </head>
 <body>
-  <div id="app" style="display:flex; height:100vh; overflow:hidden;">
-    <div id="sidebar" style="width:220px; background:#f7f7f5; border-right:1px solid #e8e8e5; display:flex; flex-direction:column; flex-shrink:0;">
-      <div style="padding:20px 16px; border-bottom:1px solid #e8e8e5;">
-        <div style="font-size:11px; font-weight:600; color:#1a1a1a; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Office of the</div>
-        <div style="font-size:11px; font-weight:600; color:#1a1a1a; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Deputy Mayor</div>
-        <div style="font-size:10px; color:#aaaaaa; letter-spacing:0.06em;">Economic Mobility</div>
+  <div id="site-header">
+    <div style="padding:12px 32px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e8e8e5;">
+      <span id="title-link" onclick="switchPage('home')" style="font-size:15px; font-weight:600; color:#1a1a1a; letter-spacing:0.02em;">NYC Economic Mobility Dashboard</span>
+      <div id="nav-bar" style="display:flex; align-items:center; gap:32px;">
+        <button class="nav-tab" id="tab-people" onclick="switchPage('people')">People & Pipeline</button>
+        <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')">Labor Market & Sectors</button>
+        <button class="nav-tab" id="tab-fiscal" onclick="switchPage('fiscal')">Fiscal & Economic Outlook</button>
+        <button class="nav-tab" id="tab-mobilitystat" onclick="switchPage('mobilitystat')">MobilitySTAT</button>
       </div>
-      <nav id="nav" style="flex:1; padding:12px 0;"></nav>
-      <div style="padding:16px; border-top:1px solid #e8e8e5;">
-        <div style="font-size:10px; color:#aaaaaa;">Last updated</div>
-        <div id="lastUpdated" style="font-size:11px; color:#888888; font-weight:500;">March 2026</div>
-      </div>
-    </div>
-    <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-      <div style="background:#ffffff; border-bottom:1px solid #e8e8e5; padding:14px 24px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-        <span style="font-size:14px; font-weight:600; color:#1a1a1a; letter-spacing:0.04em;">NYC ECONOMIC MOBILITY DASHBOARD</span>
-        <div style="display:flex; gap:16px; align-items:center;">
-          <span style="font-size:11px; color:#aaaaaa;">v2.0 &middot; Internal Use Only</span>
-          <span id="dataPeriod" style="font-size:11px; color:#888888; background:#f7f7f5; padding:3px 10px; border:1px solid #e8e8e5;">DEC 2025 DATA</span>
-        </div>
-      </div>
-      <div id="content" style="flex:1; overflow-y:auto; padding:24px; background:#fafafa;"></div>
     </div>
   </div>
+  <div id="content" style="max-width:1280px; margin:0 auto; padding:32px;"></div>
+  <footer style="border-top:1px solid #e8e8e5; padding:24px 32px; display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+      <div style="font-size:12px; color:#aaaaaa;">Powered by <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer" style="color:#1a1a1a; text-decoration:underline;">SquareOne</a></div>
+      <div id="footerUpdated" style="font-size:11px; color:#aaaaaa; margin-top:4px;">Last updated April 2026</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:12px; color:#aaaaaa;">v2.0 &middot; Internal Use Only</div>
+      <div id="footerData" style="font-size:11px; color:#aaaaaa; margin-top:4px;">Data from DEC 2025</div>
+    </div>
+  </footer>
 
 <script>
-var LAST_UPDATED = 'March 2026';
+var LAST_UPDATED = 'April 2026';
 var DATA_PERIOD = 'DEC 2025 DATA';
 var C = { bg:'#ffffff', card:'#ffffff', border:'#e8e8e5', text:'#1a1a1a', body:'#333333', muted:'#888888', dim:'#aaaaaa', blue:'#2563eb', green:'#059669', red:'#dc2626', amber:'#d97706', indigo:'#4f46e5', purple:'#7c3aed', cyan:'#0891b2', light:'#888888', offwhite:'#f7f7f5' };
 Chart.defaults.color = 'rgba(0,0,0,0.5)';
@@ -587,48 +589,150 @@ function renderMobilitySTAT() {
   destroyCharts();
 }
 
+/* ── HEADLINE FINDINGS (for landing page cards) ───────────────────────────── */
+
+function getHeadlineFinding(layer) {
+  if (layer === 'people') {
+    var hsVal = educationTrends.hsGrad[educationTrends.hsGrad.length - 1];
+    var hsPrev = educationTrends.hsGrad[educationTrends.hsGrad.length - 2];
+    var hsDelta = Math.round((hsVal - hsPrev) * 10) / 10;
+    var declined = 0; var total = 0;
+    for (var i = 0; i < educationMetrics.length; i++) { total++; if (educationMetrics[i].sentiment === 'negative') declined++; }
+    if (hsVal < hsPrev) {
+      return { text: 'HS graduation rate fell to ' + hsVal + '%, down ' + Math.abs(hsDelta) + 'pp \u2014 steepest drop in 20 years. ' + declined + ' of ' + total + ' pipeline metrics negative.', sentiment: 'negative' };
+    } else if (hsVal > hsPrev) {
+      return { text: 'HS graduation rate improved to ' + hsVal + '%, but ' + declined + ' of ' + total + ' pipeline metrics remain negative.', sentiment: 'neutral' };
+    }
+    return { text: declined + ' of ' + total + ' pipeline metrics are flagged negative.', sentiment: 'negative' };
+  }
+  if (layer === 'labor') {
+    var totalGain = 0; var topSector = ''; var topGain = 0;
+    for (var i = 0; i < sectorData.changes.length; i++) {
+      if (sectorData.changes[i] > 0) { totalGain += sectorData.changes[i]; if (sectorData.changes[i] > topGain) { topGain = sectorData.changes[i]; topSector = sectorData.sectors[i]; } }
+    }
+    var topPct = totalGain > 0 ? Math.round(topGain / totalGain * 100) : 0;
+    var elCurrent = entryLevel.values[entryLevel.values.length - 1];
+    var elDecline = Math.round((1 - elCurrent / 72.5) * 1000) / 10;
+    if (topPct > 80) {
+      return { text: topSector + ' accounts for ' + topPct + '% of all jobs added. Entry-level postings down ' + elDecline + '% since 2022.', sentiment: 'negative' };
+    }
+    return { text: 'Entry-level postings have fallen ' + elDecline + '% since 2022, from 72.5K to ' + elCurrent + 'K.', sentiment: 'negative' };
+  }
+  if (layer === 'fiscal') {
+    var maxGap = 0; var maxGapYear = '';
+    for (var i = 0; i < budgetGaps.without.length; i++) {
+      if (budgetGaps.without[i] > maxGap) { maxGap = budgetGaps.without[i]; maxGapYear = budgetGaps.labels[i]; }
+    }
+    return { text: 'Projected $' + maxGap + 'B budget gap in ' + maxGapYear + ' without property tax increase. Cumulative PIT loss could reach $' + pitLost.accelerated[pitLost.accelerated.length-1] + 'M by ' + pitLost.labels[pitLost.labels.length-1] + '.', sentiment: 'negative' };
+  }
+  if (layer === 'mobilitystat') {
+    var actionCount = 0; var pendingCount = 0; var totalMetrics = 0;
+    for (var a = 0; a < agencies.length; a++) {
+      if (agencies[a].status === 'action') actionCount++;
+      for (var m = 0; m < agencies[a].metrics.length; m++) { totalMetrics++; if (agencies[a].metrics[m].pending) pendingCount++; }
+    }
+    if (actionCount > 0) {
+      return { text: actionCount + ' of ' + agencies.length + ' agencies flagged for action. ' + pendingCount + ' of ' + totalMetrics + ' metrics lack current data.', sentiment: 'negative' };
+    }
+    return { text: 'All agencies on track. ' + pendingCount + ' metrics awaiting data.', sentiment: 'positive' };
+  }
+  return { text: '', sentiment: 'neutral' };
+}
+
+/* ── HOME / LANDING PAGE ──────────────────────────────────────────────────── */
+
+function renderHome() {
+  var cards = [
+    { id:'people', num:'01', label:'People & Pipeline', sub:'Education outcomes from 9th grade through employment. Where the pipeline is strong and where it leaks.' },
+    { id:'labor', num:'02', label:'Labor Market & Sectors', sub:'Which sectors are creating jobs, who those jobs serve, and whether the entry-level on-ramp exists.' },
+    { id:'fiscal', num:'03', label:'Fiscal & Economic Outlook', sub:'Tax revenue projections, budget gaps, and the fiscal cost of inaction on workforce investment.' },
+    { id:'mobilitystat', num:'04', label:'MobilitySTAT', sub:'Agency-level accountability. Which agencies are hitting targets and which need intervention.' }
+  ];
+  var h = '';
+  // Title block
+  h += '<div style="margin-bottom:40px;">';
+  h += '<h1 style="font-size:28px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;line-height:1.3;">New York City Economic Mobility Dashboard</h1>';
+  h += '<div style="font-size:14px;color:#888888;margin-bottom:4px;">Office of the Deputy Mayor for Economic Justice</div>';
+  h += '<div style="font-size:12px;color:#aaaaaa;">Last updated: ' + LAST_UPDATED + '</div>';
+  h += '</div>';
+  // Framing paragraph
+  h += '<p style="font-size:15px;line-height:1.7;color:#333333;max-width:720px;margin:0 0 40px 0;">' +
+    'Economic mobility depends on three systems working together: an education system that prepares every New Yorker to succeed, ' +
+    'a workforce development system that ensures no one is left behind as the labor market changes, and an economic development strategy ' +
+    'that brings jobs and tax revenue to sustain a prosperous city. These are not separate policy areas. They are interdependent parts of a single engine. ' +
+    'This dashboard tracks whether New York City is making progress across all three, who is being left behind, and what happens if current trends continue.' +
+    '</p>';
+  // Layer cards grid
+  h += '<div class="home-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px;">';
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var finding = getHeadlineFinding(c.id);
+    var fColor = finding.sentiment === 'negative' ? C.red : finding.sentiment === 'positive' ? C.green : '#666666';
+    h += '<div onclick="switchPage(\'' + c.id + '\')" style="background:#ffffff;border:1px solid #e8e8e5;border-radius:8px;padding:24px;cursor:pointer;transition:background 0.15s,border-color 0.15s;" onmouseover="this.style.background=\'#f7f7f5\';this.style.borderColor=\'#d0d0cd\';" onmouseout="this.style.background=\'#ffffff\';this.style.borderColor=\'#e8e8e5\';">';
+    h += '<div style="font-size:17px;font-weight:600;color:#1a1a1a;margin-bottom:8px;">' + c.num + '\u2003' + c.label + '</div>';
+    h += '<div style="font-size:13px;color:#888888;margin-bottom:16px;line-height:1.5;">' + c.sub + '</div>';
+    h += '<div style="font-size:13px;font-weight:500;color:' + fColor + ';line-height:1.5;">' + finding.text + '</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+  // Footer
+  h += '<div style="text-align:center;margin-bottom:40px;">';
+  h += '<span style="font-size:12px;color:#aaaaaa;">Powered by <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer" style="color:#aaaaaa;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\';" onmouseout="this.style.textDecoration=\'none\';">SquareOne</a></span>';
+  h += '</div>';
+  document.getElementById('content').innerHTML = h;
+  destroyCharts();
+}
+
 /* ── NAV + INIT ───────────────────────────────────────────────────────────── */
 
 var pages = [
-  { id:'people', label:'People & Pipeline', layer:'01', render:renderPeoplePipeline },
-  { id:'labor', label:'Labor Market & Sectors', layer:'02', render:renderLaborMarket },
-  { id:'fiscal', label:'Fiscal & Economic Outlook', layer:'03', render:renderFiscalOutlook },
-  { id:'mobilitystat', label:'MobilitySTAT', layer:'04', render:renderMobilitySTAT }
+  { id:'home', render:renderHome },
+  { id:'people', render:renderPeoplePipeline },
+  { id:'labor', render:renderLaborMarket },
+  { id:'fiscal', render:renderFiscalOutlook },
+  { id:'mobilitystat', render:renderMobilitySTAT }
 ];
-var activePage = 'people';
+var tabIds = ['people','labor','fiscal','mobilitystat'];
+var activePage = 'home';
 
-function renderNav() {
-  var h = '';
-  for (var i = 0; i < pages.length; i++) {
-    var p = pages[i], act = p.id === activePage;
-    h += '<button class="nav-btn' + (act?' active':'') + '" onclick="switchPage(\'' + p.id + '\')">' +
-      '<div style="font-size:10px;color:' + (act?C.text:C.dim) + ';letter-spacing:0.08em;margin-bottom:3px;">LAYER ' + p.layer + '</div>' +
-      '<div style="font-size:13px;color:' + (act?C.text:'#666666') + ';font-weight:' + (act?600:400) + ';">' + p.label + '</div></button>';
+function updateTabs() {
+  for (var i = 0; i < tabIds.length; i++) {
+    var el = document.getElementById('tab-' + tabIds[i]);
+    if (el) {
+      if (tabIds[i] === activePage) {
+        el.className = 'nav-tab active';
+      } else {
+        el.className = 'nav-tab';
+      }
+    }
   }
-  document.getElementById('nav').innerHTML = h;
 }
+
 function switchPage(id) {
   activePage = id;
-  renderNav();
+  updateTabs();
   var content = document.getElementById('content');
   content.style.opacity = '0';
+  content.scrollTop = 0;
   setTimeout(function() {
     for (var i = 0; i < pages.length; i++) { if (pages[i].id === id) { pages[i].render(); break; } }
     content.style.opacity = '1';
+    window.scrollTo(0, 0);
   }, 80);
 }
 
-document.getElementById('lastUpdated').textContent = LAST_UPDATED;
-document.getElementById('dataPeriod').textContent = DATA_PERIOD;
+document.getElementById('footerUpdated').textContent = 'Last updated ' + LAST_UPDATED;
+document.getElementById('footerData').textContent = 'Data from ' + DATA_PERIOD.replace(' DATA', '');
 document.addEventListener('keydown', function(e) {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   var key = e.key;
-  if (key === '1') switchPage('people');
+  if (key === '0') switchPage('home');
+  else if (key === '1') switchPage('people');
   else if (key === '2') switchPage('labor');
   else if (key === '3') switchPage('fiscal');
   else if (key === '4') switchPage('mobilitystat');
 });
-try { renderNav(); renderPeoplePipeline(); } catch(e) {
+try { updateTabs(); renderHome(); } catch(e) {
   document.getElementById('content').innerHTML = '<pre style="color:#dc2626;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>';
 }
 </script>
