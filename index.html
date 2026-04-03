@@ -75,7 +75,7 @@
     </div>
     <div style="text-align:right;">
       <div style="font-size:12px; color:#aaaaaa;">v2.0 &middot; Internal Use Only</div>
-      <div id="footerData" style="font-size:11px; color:#aaaaaa; margin-top:4px;">Data from DEC 2025</div>
+      <div id="footerData" onclick="switchPage('sources')" style="font-size:11px; color:#aaaaaa; margin-top:4px; cursor:pointer; text-decoration:none;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">Data &amp; Sources</div>
     </div>
   </footer>
 
@@ -656,7 +656,7 @@ function renderHome() {
   h += '<div style="font-size:12px;color:#aaaaaa;">Last updated: ' + LAST_UPDATED + '</div>';
   h += '</div>';
   // Framing paragraph
-  h += '<p style="font-size:15px;line-height:1.7;color:#333333;max-width:720px;margin:0 0 40px 0;">' +
+  h += '<p style="font-size:15px;line-height:1.7;color:#333333;margin:0 0 40px 0;">' +
     'Economic mobility depends on three systems working together: an education system that prepares every New Yorker to succeed, ' +
     'a workforce development system that ensures no one is left behind as the labor market changes, and an economic development strategy ' +
     'that brings jobs and tax revenue to sustain a prosperous city. These are not separate policy areas. They are interdependent parts of a single engine. ' +
@@ -675,10 +675,76 @@ function renderHome() {
     h += '</div>';
   }
   h += '</div>';
-  // Footer
-  h += '<div style="text-align:center;margin-bottom:40px;">';
-  h += '<span style="font-size:12px;color:#aaaaaa;">Powered by <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer" style="color:#aaaaaa;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\';" onmouseout="this.style.textDecoration=\'none\';">SquareOne</a></span>';
+  document.getElementById('content').innerHTML = h;
+  destroyCharts();
+}
+
+/* ── DATA & SOURCES PAGE ──────────────────────────────────────────────────── */
+
+function renderSources() {
+  var h = '';
+  // Title
+  h += '<div style="margin-bottom:32px;">';
+  h += '<h1 style="font-size:28px;font-weight:700;color:#1a1a1a;margin:0 0 8px 0;">Data & Sources</h1>';
+  h += '<div style="font-size:14px;color:#888888;">All data in this dashboard is sourced from public agencies and independent research organizations.</div>';
   h += '</div>';
+  // Intro
+  h += '<p style="font-size:14px;line-height:1.7;color:#333333;margin:0 0 40px 0;">' +
+    'This dashboard is updated on a monthly, quarterly, and annual cadence depending on the metric. ' +
+    'The most recent data used is noted for each source below. Projection models (revenue scenarios, ' +
+    'entry-level job forecasts, and cumulative PIT loss estimates) are built from these sources and are ' +
+    'described in the Methodology section at the bottom of this page.</p>';
+  // Table
+  var sources = [
+    ['NYC Department of Education (InfoHub)', 'https://infohub.nyced.org/reports/academics/graduation-results', 'HS graduation rates (citywide, by disability status, by ELL status), dropout rates, cohort tracking', 'Annually (Feb/Mar)', 'Class of 2025 (released March 2026)'],
+    ['CUNY Office of Institutional Research', 'https://www.cuny.edu/about/administration/offices/oira/institutional/data/', 'Enrollment, 3-year Associate\'s completion rate, 6-year Bachelor\'s completion rate, paid internship rate, campus-level data', 'Annually (fall)', 'Fall 2024 data'],
+    ['NY State Department of Labor', 'https://dol.ny.gov/labor-statistics-new-york-city-region', 'NYC unemployment rate, youth unemployment, private sector jobs by sector, over-the-year employment change', 'Monthly (~3 week lag)', 'December 2025'],
+    ['U.S. Bureau of Labor Statistics (JOLTS)', 'https://www.bls.gov/regions/northeast/news-release/jobopeningslaborturnover_newyork.htm', 'Job openings (NY State), hires, separations, layoffs, unemployed-per-opening ratio', 'Monthly', 'December 2025'],
+    ['U.S. Bureau of Labor Statistics (Employment Projections)', 'https://www.bls.gov/emp/', 'National 2024\u20132034 occupational and industry employment projections, used for scenario modeling', 'Biennial', 'August 2025 release'],
+    ['NYC Comptroller\'s Office', 'https://comptroller.nyc.gov/reports/', 'Tax revenue actuals and forecasts, budget gap projections, PIT analysis, commercial office vacancy analysis, employment analysis', 'Quarterly / annual / as published', 'Comments on FY2027 Preliminary Budget (March 2026)'],
+    ['NYC Office of Management and Budget', 'https://www.nyc.gov/site/omb/index.page', 'Preliminary budget, executive budget, financial plan revenue and expenditure forecasts', 'Jan (preliminary), Apr (executive), Jun (adopted)', 'FY2027 Preliminary Budget (January 2026)'],
+    ['Center for an Urban Future', 'https://nycfuture.org/research', 'Entry-level job postings data, CUNY career outcomes analysis, workforce system recommendations, internship posting trends', 'As published', '"From Degree to Career" (March 2026)'],
+    ['NYCEDC', 'https://edc.nyc/economic-data', 'Private sector job creation trends, monthly Economic Snapshot, State of the NYC Economy annual report', 'Monthly (snapshots), annual (report)', '2025 State of the NYC Economy'],
+    ['Citizens Budget Commission', 'https://cbcny.org/research', 'Fiscal analysis, education finance research, budget gap projections', 'As published', 'Various 2024\u20132026 publications'],
+    ['Brookings Institution', 'https://www.brookings.edu/', 'Apprenticeship evidence base, employer ROI research', 'As published', '"Building an Evidence Base for Apprenticeships" (January 2026)'],
+    ['TNTP', 'https://tntp.org/', 'Career pathway credential alignment research (18% alignment finding)', 'As published', '"Most Career Pathway Programs Aren\'t Preparing Students for Good Jobs" (September 2025)']
+  ];
+  h += '<div style="overflow-x:auto;margin-bottom:48px;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  h += '<thead><tr style="background:#f7f7f5;">';
+  h += '<th style="text-align:left;padding:12px 16px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:20%;">Source</th>';
+  h += '<th style="text-align:left;padding:12px 16px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:40%;">What it provides</th>';
+  h += '<th style="text-align:left;padding:12px 16px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:15%;">Frequency</th>';
+  h += '<th style="text-align:left;padding:12px 16px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:25%;">Most recent data</th>';
+  h += '</tr></thead><tbody>';
+  for (var i = 0; i < sources.length; i++) {
+    var s = sources[i];
+    var bg = i % 2 === 0 ? '#ffffff' : '#fafaf8';
+    h += '<tr style="background:' + bg + ';">';
+    h += '<td style="padding:12px 16px;border-bottom:1px solid #e8e8e5;vertical-align:top;"><a href="' + s[1] + '" target="_blank" rel="noopener noreferrer" style="color:#1a1a1a;text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\';" onmouseout="this.style.textDecoration=\'none\';">' + s[0] + '</a></td>';
+    h += '<td style="padding:12px 16px;border-bottom:1px solid #e8e8e5;color:#333333;vertical-align:top;">' + s[2] + '</td>';
+    h += '<td style="padding:12px 16px;border-bottom:1px solid #e8e8e5;color:#888888;vertical-align:top;">' + s[3] + '</td>';
+    h += '<td style="padding:12px 16px;border-bottom:1px solid #e8e8e5;color:#888888;vertical-align:top;">' + s[4] + '</td>';
+    h += '</tr>';
+  }
+  h += '</tbody></table></div>';
+  // Methodology
+  h += '<h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin:0 0 24px 0;">Methodology</h2>';
+  var methods = [
+    ['Revenue projection scenarios (Layer 3)',
+     'Three scenarios model total NYC tax revenue through FY2030. The OMB Forecast uses the Mayor\'s Office of Management and Budget projections from the FY2027 Preliminary Budget (January 2026). The Comptroller Forecast uses the NYC Comptroller\'s independent re-estimates from the March 2026 Comments on the Preliminary Budget. The Stagnation Scenario applies the Comptroller\'s stated "mild recession" downside assumptions (tariffs remain above 20%, GDP declines in Q4 2025 and Q1 2026) and compounds them through FY2030, with PIT constrained to 1.5% annual growth reflecting wage stagnation outside the finance sector, continued outmigration of high-income filers, and AI displacement of taxable employment.'],
+    ['Entry-level jobs vs. graduate supply projections (Layer 3)',
+     'Three scenarios model entry-level job availability against annual graduate output through 2031. The BLS Baseline applies the national 3.1% total employment growth projection (BLS 2024\u20132034) proportionally to NYC entry-level postings, producing a slow recovery from the current trough. The Moderate Displacement scenario uses BLS sectoral projections: retail trade declining 1.2% annually, office and administrative roles shrinking 2\u20133% per year, and professional services substituting AI for routine tasks, producing an aggregate 5% annual decline in entry-level postings. The Accelerated Displacement scenario applies the 8% annual decline rate consistent with Aura Intelligence\'s documented 7\u201310% year-over-year decline in no-experience-required postings and the Comptroller\'s warning that AI may prove "more labor substituting." Annual graduate supply is held at approximately 93,000 (59,000 NYC high school graduates plus an estimated 34,000 CUNY completers entering the workforce annually).'],
+    ['Cumulative PIT revenue loss from underemployment (Layer 3)',
+     'For each projection year, the model calculates the number of graduates who cannot find career-track employment (annual graduate supply minus available entry-level postings). Each underemployed graduate represents lost city PIT revenue at the median NYC entry-level salary of $45,000 and an effective PIT rate of approximately 3.1%, yielding $1,395 per worker per year. The model accumulates this loss year over year. This is a conservative estimate: it treats each year\'s displaced cohort independently, does not compound the lifetime earnings penalty of delayed career entry (Brookings estimates 2\u20133% lower lifetime earnings per year of early-career underemployment), and excludes lost sales tax revenue and increased social services costs (estimated at $5,000\u2013$8,000 per underemployed person per year in HRA, SNAP, and housing subsidy costs).'],
+    ['MobilitySTAT status indicators (Layer 4)',
+     'Each agency metric with a defined target is auto-evaluated. On Track (green): the current value meets or exceeds the target. Watch (amber): the current value falls between 80% and 99% of the target. Action Required (red): the current value is below 80% of the target. No Data (gray): no current value is available. For metrics where a lower value is better (e.g., unemployment rate), the logic is inverted. Targets shown are proposed by the Office of the Deputy Mayor for Economic Justice and are subject to revision. The summary counts at the top of the MobilitySTAT layer reflect metric-level status, not agency-level.']
+  ];
+  for (var i = 0; i < methods.length; i++) {
+    h += '<div style="margin-bottom:32px;">';
+    h += '<div style="font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:8px;">' + methods[i][0] + '</div>';
+    h += '<p style="font-size:13px;line-height:1.7;color:#333333;margin:0;">' + methods[i][1] + '</p>';
+    h += '</div>';
+  }
   document.getElementById('content').innerHTML = h;
   destroyCharts();
 }
@@ -690,7 +756,8 @@ var pages = [
   { id:'people', render:renderPeoplePipeline },
   { id:'labor', render:renderLaborMarket },
   { id:'fiscal', render:renderFiscalOutlook },
-  { id:'mobilitystat', render:renderMobilitySTAT }
+  { id:'mobilitystat', render:renderMobilitySTAT },
+  { id:'sources', render:renderSources }
 ];
 var tabIds = ['people','labor','fiscal','mobilitystat'];
 var activePage = 'home';
@@ -722,7 +789,6 @@ function switchPage(id) {
 }
 
 document.getElementById('footerUpdated').textContent = 'Last updated ' + LAST_UPDATED;
-document.getElementById('footerData').textContent = 'Data from ' + DATA_PERIOD.replace(' DATA', '');
 document.addEventListener('keydown', function(e) {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   var key = e.key;
