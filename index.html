@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC Economic Mobility Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            navy: { 950: '#0f172a', 900: '#0f1e38', 800: '#1e293b', 700: '#243350' },
+            slate: { 600: '#475569', 500: '#64748b', 400: '#94a3b8', 300: '#cbd5e1', 200: '#e2e8f0' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #1e293b; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .recharts-tooltip-wrapper { z-index: 1000; }
+    .recharts-default-tooltip { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 4px !important; }
+    .recharts-tooltip-label { color: #94a3b8 !important; font-size: 12px !important; }
+    .recharts-tooltip-item { color: #f1f5f9 !important; font-size: 12px !important; }
+    .source-cite { font-size: 11px; color: #475569; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React + ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Recharts -->
+  <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const {
+      ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis,
+      CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea,
+      PieChart, Pie, Cell, LabelList
+    } = Recharts;
+    const { useState, useEffect } = React;
+
+    // ─── DESIGN TOKENS ────────────────────────────────────────────────────────
+    const C = {
+      bg: '#0f172a', card: '#1e293b', border: '#334155',
+      text: '#f1f5f9', muted: '#64748b', dim: '#475569',
+      blue: '#3b82f6', green: '#10b981', red: '#ef4444', amber: '#f59e0b',
+      indigo: '#6366f1', purple: '#a855f7', cyan: '#06b6d4'
+    };
+
+    // ─── DATA ─────────────────────────────────────────────────────────────────
+    const educationMetrics = [
+      { label: "HS GRADUATION RATE", value: "81.2%", context: "-2.0pp YoY — largest drop in 20 years", trend: "down", sentiment: "negative" },
+      { label: "COLLEGE ENROLLMENT RATE", value: "71%", context: "Down from 81% in 2019", trend: "down", sentiment: "negative" },
+      { label: "CUNY 3-YR ASSOCIATE'S COMPLETION", value: "25%", context: "ASAP students: 53%", trend: "flat", sentiment: "negative" },
+      { label: "CUNY 6-YR BACHELOR'S COMPLETION", value: "53%", context: "Varies widely by campus", trend: "up", sentiment: "warning" },
+      { label: "CUNY PAID INTERNSHIP RATE", value: "12%", context: "National average: 57%", trend: "flat", sentiment: "negative" },
+      { label: "YOUTH UNEMPLOYMENT (UNDER 24)", value: "7.6%", context: "Non-college youth, Dec 2025", trend: "flat", sentiment: "negative" },
+      { label: "NYC UNEMPLOYMENT RATE", value: "5.6%", context: "Dec 2025 (NYS: 4.6%)", trend: "flat", sentiment: "negative" },
+      { label: "ENTRY-LEVEL POSTINGS", value: "45,354", context: "-37.4% since 2022", trend: "down", sentiment: "negative" },
+      { label: "UNDEREMPLOYED WORKING-AGE NYers", value: "1.1M", context: "Unemployed + underemployed + min wage", trend: "flat", sentiment: "negative" },
+      { label: "BLACK UNEMPLOYMENT", value: "9.6%", context: "Dec 2025", trend: "flat", sentiment: "negative" }
+    ];
+
+    const funnelStages = [
+      { stage: "Enter 9th Grade", count: "72,000", pct: 100, value: 100 },
+      { stage: "HS Graduation (4yr)", count: "58,500", pct: 81.2, value: 81.2 },
+      { stage: "College Enrollment", count: "41,500", pct: 71.0, value: 71.0 },
+      { stage: "CUNY Bachelor's (6yr)", count: "22,000", pct: 53.0, value: 53.0 },
+      { stage: "Paid Internship", count: "2,640", pct: 12.0, value: 12.0 },
+      { stage: "Career-Track Job (1yr)", count: "???", pct: null, value: 0 }
+    ];
+
+    const educationTrends = [
+      { year: 2016, hsGradRate: 76.0, collegeEnrollment: 73, cuny6yr: 42 },
+      { year: 2017, hsGradRate: 77.3, collegeEnrollment: 75, cuny6yr: 44 },
+      { year: 2018, hsGradRate: 78.3, collegeEnrollment: 77, cuny6yr: 46 },
+      { year: 2019, hsGradRate: 80.4, collegeEnrollment: 81, cuny6yr: 48 },
+      { year: 2020, hsGradRate: 81.0, collegeEnrollment: 76, cuny6yr: 49 },
+      { year: 2021, hsGradRate: 82.6, collegeEnrollment: 71, cuny6yr: 50 },
+      { year: 2022, hsGradRate: 83.4, collegeEnrollment: 70, cuny6yr: 51 },
+      { year: 2023, hsGradRate: 83.3, collegeEnrollment: 69, cuny6yr: 52 },
+      { year: 2024, hsGradRate: 83.3, collegeEnrollment: 69, cuny6yr: 53 },
+      { year: 2025, hsGradRate: 81.2, collegeEnrollment: null, cuny6yr: 53 }
+    ];
+
+    const employmentMetrics = [
+      { label: "PRIVATE SECTOR JOBS", value: "4,332,300", context: "Dec 2025", trend: "flat", sentiment: "neutral" },
+      { label: "OVER-THE-YEAR JOB CHANGE", value: "+33,400", context: "Almost entirely healthcare", trend: "up", sentiment: "warning" },
+      { label: "JOB CREATION (JAN–JUL 2025)", value: "5,100", context: "Down from 173K in 2022", trend: "down", sentiment: "negative" },
+      { label: "JOB OPENINGS (NY STATE)", value: "372,000", context: "Dec 2025, rate: 3.6%", trend: "flat", sentiment: "neutral" },
+      { label: "UNEMPLOYED PER JOB OPENING", value: "1.2", context: "Dec 2025", trend: "flat", sentiment: "warning" },
+      { label: "ENTRY-LEVEL POSTINGS DECLINE", value: "-37.4%", context: "2022 to 2024", trend: "down", sentiment: "negative" }
+    ];
+
+    const sectorChanges = [
+      { sector: "Education & Health", change: 71100, medianWage: 24 },
+      { sector: "Prof & Business Svcs", change: -2300, medianWage: 45 },
+      { sector: "Information", change: -500, medianWage: 55 },
+      { sector: "Manufacturing", change: -2400, medianWage: 22 },
+      { sector: "Other Services", change: -5300, medianWage: 20 },
+      { sector: "Leisure & Hospitality", change: -5100, medianWage: 18 },
+      { sector: "Financial Activities", change: -6300, medianWage: 52 },
+      { sector: "Trade/Transport/Util", change: -7200, medianWage: 22 },
+      { sector: "Construction & Mining", change: -8600, medianWage: 35 }
+    ].sort((a, b) => a.change - b.change);
+
+    const jobCreationTrend = [
+      { year: "2022", jobs: 173.0 },
+      { year: "2023", jobs: 41.6 },
+      { year: "2024", jobs: 68.1 },
+      { year: "2025", jobs: 5.1 }
+    ];
+
+    const entryLevelPostings = [
+      { year: 2019, postings: 68.0 },
+      { year: 2020, postings: 42.0 },
+      { year: 2021, postings: 55.0 },
+      { year: 2022, postings: 72.5 },
+      { year: 2023, postings: 58.0 },
+      { year: 2024, postings: 45.4 }
+    ];
+
+    const fiscalMetrics = [
+      { label: "FY2026 TOTAL TAX REVENUE", value: "$84.2B", context: "OMB forecast", trend: "up", sentiment: "positive" },
+      { label: "PIT + PTET", value: "$18.0B", context: "22.1% of total tax revenue", trend: "flat", sentiment: "neutral" },
+      { label: "PROPERTY TAX", value: "$35.3B", context: "43.4% of total tax revenue", trend: "flat", sentiment: "neutral" },
+      { label: "BUDGET GAP (FY2026)", value: "$5.4B", context: "Down from $12B inherited", trend: "up", sentiment: "positive" },
+      { label: "FY2027 PROJECTED GAP", value: "$10.4B", context: "CBC/Comptroller estimate", trend: "down", sentiment: "negative" },
+      { label: "MANHATTAN OFFICE VACANCY", value: "~22%", context: "Down from 23.6%; pre-COVID ~10%", trend: "up", sentiment: "warning" },
+      { label: "FY2028 GAP (COMPTROLLER)", value: "$10.1B", context: "7.9% of total revenues", trend: "down", sentiment: "negative" }
+    ];
+
+    const taxRevenueSources = [
+      { source: "Property Tax", amount: 35.3, share: 43.4 },
+      { source: "PIT + PTET", amount: 18.0, share: 22.1 },
+      { source: "Business Income", amount: 10.0, share: 12.3 },
+      { source: "Sales Tax", amount: 9.5, share: 11.7 },
+      { source: "Other Tax", amount: 11.5, share: 10.5 }
+    ];
+
+    const revenueProjections = [
+      { year: "FY2025", omb: 80.5, comptroller: 80.5, stagnation: 80.5 },
+      { year: "FY2026", omb: 84.3, comptroller: 83.7, stagnation: 82.0 },
+      { year: "FY2027", omb: 91.5, comptroller: 89.8, stagnation: 83.5 },
+      { year: "FY2028", omb: 93.8, comptroller: 93.1, stagnation: 84.8 },
+      { year: "FY2029", omb: 95.5, comptroller: 97.2, stagnation: 86.2 },
+      { year: "FY2030", omb: 97.4, comptroller: 99.8, stagnation: 87.5 }
+    ];
+
+    const budgetGaps = [
+      { year: "FY2026", withIncrease: 0.8, without: 0.8 },
+      { year: "FY2027", withIncrease: 2.85, without: 6.53 },
+      { year: "FY2028", withIncrease: 10.06, without: 13.87 },
+      { year: "FY2029", withIncrease: 8.58, without: 12.53 },
+      { year: "FY2030", withIncrease: 6.96, without: 11.09 }
+    ];
+
+    const entryLevelVsSupply = [
+      { year: 2022, baseline: 72.5, moderate: 72.5, accelerated: 72.5, supply: 93 },
+      { year: 2023, baseline: 58.0, moderate: 58.0, accelerated: 58.0, supply: 93 },
+      { year: 2024, baseline: 45.4, moderate: 45.4, accelerated: 45.4, supply: 93 },
+      { year: 2025, baseline: 43.0, moderate: 43.0, accelerated: 43.0, supply: 93 },
+      { year: 2026, baseline: 43.5, moderate: 40.9, accelerated: 39.6, supply: 93 },
+      { year: 2027, baseline: 44.5, moderate: 38.8, accelerated: 36.4, supply: 93 },
+      { year: 2028, baseline: 46.0, moderate: 36.9, accelerated: 33.5, supply: 93 },
+      { year: 2029, baseline: 47.5, moderate: 35.0, accelerated: 30.8, supply: 93 },
+      { year: 2030, baseline: 49.0, moderate: 33.3, accelerated: 28.3, supply: 93 },
+      { year: 2031, baseline: 51.0, moderate: 31.6, accelerated: 26.1, supply: 93 }
+    ];
+
+    const pitRevenueLost = [
+      { year: "2022", moderate: 29, accelerated: 29 },
+      { year: "2023", moderate: 77, accelerated: 77 },
+      { year: "2024", moderate: 143, accelerated: 143 },
+      { year: "2025", moderate: 213, accelerated: 213 },
+      { year: "2026", moderate: 286, accelerated: 288 },
+      { year: "2027", moderate: 362, accelerated: 367 },
+      { year: "2028", moderate: 440, accelerated: 450 },
+      { year: "2029", moderate: 521, accelerated: 537 },
+      { year: "2030", moderate: 604, accelerated: 627 },
+      { year: "2031", moderate: 690, accelerated: 720 }
+    ];
+
+    const agencies = [
+      {
+        name: "DOE", fullName: "Department of Education",
+        description: "K-12 outcomes, CTE pathways, dual enrollment, and credential attainment",
+        owner: "Portfolio Owner TBD", status: "action",
+        metrics: [
+          { label: "HS Graduation Rate", value: "81.2%", trend: "down", sentiment: "negative", pending: false },
+          { label: "CTE Enrollment", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Dual Enrollment Participation", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Students Earning Industry Credentials", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      },
+      {
+        name: "CUNY", fullName: "City University of New York",
+        description: "Enrollment, completion rates, paid internship placements, and workforce readiness",
+        owner: "Portfolio Owner TBD", status: "action",
+        metrics: [
+          { label: "Total Enrollment", value: "~232,000", trend: "down", sentiment: "warning", pending: false },
+          { label: "3-Year Associate's Completion", value: "25%", trend: "flat", sentiment: "negative", pending: false },
+          { label: "6-Year Bachelor's Completion", value: "53%", trend: "up", sentiment: "warning", pending: false },
+          { label: "Paid Internship Completion", value: "12%", trend: "flat", sentiment: "negative", pending: false }
+        ]
+      },
+      {
+        name: "SBS", fullName: "Small Business Services",
+        description: "Workforce program placements, employer partnerships, and small business regulatory relief",
+        owner: "Portfolio Owner TBD", status: "watch",
+        metrics: [
+          { label: "Workforce Program Placements", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "90-Day Retention Rate", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Small Business Regulatory Burden Reduction", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Active Employer Partnerships", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      },
+      {
+        name: "NYCEDC", fullName: "NYC Economic Development Corp.",
+        description: "Private sector job creation, sector diversification, and MWBE utilization",
+        owner: "Portfolio Owner TBD", status: "action",
+        metrics: [
+          { label: "Private Sector Job Creation (Jan–Jul 2025)", value: "+5,100", trend: "down", sentiment: "negative", pending: false },
+          { label: "MWBE Contract Utilization", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Business Formation Rate", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Sector Diversification Index", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      },
+      {
+        name: "DYCD", fullName: "Youth & Community Development",
+        description: "Youth program enrollment, summer employment, and post-program outcomes",
+        owner: "Portfolio Owner TBD", status: "watch",
+        metrics: [
+          { label: "Youth Program Enrollment", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Summer Youth Employment Slots", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Post-Program Employment Rate", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      },
+      {
+        name: "HRA", fullName: "Human Resources Administration",
+        description: "Adult workforce programs, placement rates, and wage trajectories",
+        owner: "Portfolio Owner TBD", status: "watch",
+        metrics: [
+          { label: "Adult Workforce Program Enrollment", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Placement Rate", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Placement Wage at 90 Days", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "Placement Wage at 1 Year", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      },
+      {
+        name: "NYC TALENT", fullName: "NYC Talent / Workforce Development",
+        description: "Apprenticeships, CareerWise placements, and AI Workforce Fund programs",
+        owner: "Portfolio Owner TBD", status: "watch",
+        metrics: [
+          { label: "Apprenticeship Enrollment", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "CareerWise Placements", value: null, trend: null, sentiment: "neutral", pending: true },
+          { label: "AI Workforce Fund Enrollment", value: null, trend: null, sentiment: "neutral", pending: true }
+        ]
+      }
+    ];
+
+    // ─── SHARED COMPONENTS ────────────────────────────────────────────────────
+
+    function TrendArrow({ trend, sentiment }) {
+      const color = sentiment === 'positive' ? C.green : sentiment === 'negative' ? C.red : sentiment === 'warning' ? C.amber : C.muted;
+      if (trend === 'up') return <span style={{ color }}>↑</span>;
+      if (trend === 'down') return <span style={{ color }}>↓</span>;
+      return <span style={{ color: C.muted }}>→</span>;
+    }
+
+    function MetricCard({ label, value, context, trend, sentiment }) {
+      const contextColor = sentiment === 'positive' ? C.green : sentiment === 'negative' ? C.red : sentiment === 'warning' ? C.amber : C.muted;
+      return (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, padding: '16px' }}>
+          <div style={{ fontSize: 10, letterSpacing: '0.08em', color: C.muted, marginBottom: 8, fontWeight: 600 }}>{label}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: C.text, lineHeight: 1, marginBottom: 8 }}>{value}</div>
+          <div style={{ fontSize: 12, color: contextColor, display: 'flex', alignItems: 'center', gap: 4 }}>
+            {trend && <TrendArrow trend={trend} sentiment={sentiment} />}
+            <span>{context}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function ChartSection({ title, children, source }) {
+      return (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, padding: '20px', marginBottom: 16 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', marginBottom: 16, textTransform: 'uppercase' }}>{title}</div>
+          {children}
+          {source && <p className="source-cite">{source}</p>}
+        </div>
+      );
+    }
+
+    function SectionHeader({ title, subtitle }) {
+      return (
+        <div style={{ marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${C.border}` }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>{title}</h2>
+          {subtitle && <p style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>{subtitle}</p>}
+        </div>
+      );
+    }
+
+    const CHART_PROPS = {
+      axisStyle: { fontSize: 11, fill: C.muted },
+      gridStyle: { stroke: '#1e293b', strokeDasharray: '3 3' }
+    };
+
+    // ─── LAYER 1: PEOPLE & PIPELINE ───────────────────────────────────────────
+
+    function FunnelBar({ data }) {
+      const getColor = (pct) => {
+        if (pct === null) return C.dim;
+        if (pct >= 75) return C.green;
+        if (pct >= 50) return C.amber;
+        return C.red;
+      };
+
+      return (
+        <div style={{ width: '100%' }}>
+          {data.map((item, i) => (
+            <div key={i} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: C.muted }}>{item.stage}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: item.pct !== null ? C.text : C.dim }}>
+                  {item.count}{item.pct !== null ? ` (${item.pct}%)` : ' (unknown)'}
+                </span>
+              </div>
+              <div style={{ height: 20, background: C.border, position: 'relative' }}>
+                <div style={{
+                  width: item.pct !== null ? `${item.pct}%` : '10%',
+                  height: '100%',
+                  background: getColor(item.pct),
+                  opacity: item.pct !== null ? 1 : 0.3,
+                  transition: 'width 0.5s ease'
+                }} />
+              </div>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+            {[['■ Healthy (>75%)', C.green], ['■ Concerning (50–75%)', C.amber], ['■ Critical (<50%)', C.red], ['■ Unknown', C.dim]].map(([label, color]) => (
+              <span key={label} style={{ fontSize: 11, color }}>{label}</span>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    function PeoplePipeline() {
+      return (
+        <div>
+          <SectionHeader title="People & Pipeline" subtitle="Education-to-workforce outcomes for NYC students — default view" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
+            {educationMetrics.map((m, i) => <MetricCard key={i} {...m} />)}
+          </div>
+
+          <ChartSection title="Education Pipeline — Cohort Funnel (per ~72,000 students entering 9th grade)" source="Source: NYC DOE InfoHub, CUNY IR Data Book, Center for an Urban Future (2026). Placeholder — verify with source documents.">
+            <FunnelBar data={funnelStages} />
+          </ChartSection>
+
+          <ChartSection title="Education Trends 2016–2025" source="Source: NYC DOE Graduation Results, CUNY IR Data Book. Placeholder — verify with source documents.">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={educationTrends} margin={{ top: 10, right: 60, left: 0, bottom: 0 }}>
+                <CartesianGrid {...CHART_PROPS.gridStyle} />
+                <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                <YAxis domain={[30, 100]} tick={CHART_PROPS.axisStyle} tickFormatter={v => `${v}%`} />
+                <Tooltip formatter={(v, n) => [`${v}%`, n]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12, color: C.muted }} />
+                <Line type="monotone" dataKey="hsGradRate" name="HS Graduation Rate" stroke={C.blue} strokeWidth={2} dot={false} connectNulls={false} />
+                <Line type="monotone" dataKey="collegeEnrollment" name="College Enrollment Rate" stroke={C.amber} strokeWidth={2} dot={false} connectNulls={false} />
+                <Line type="monotone" dataKey="cuny6yr" name="CUNY 6-yr Bachelor's Completion" stroke={C.green} strokeWidth={2} dot={false} connectNulls={false} />
+                <ReferenceLine x={2025} stroke={C.red} strokeDasharray="4 2" label={{ value: "Largest drop in 20 yrs", position: 'top', fill: C.red, fontSize: 11 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartSection>
+        </div>
+      );
+    }
+
+    // ─── LAYER 2: LABOR MARKET & SECTORS ─────────────────────────────────────
+
+    function SectorBar({ data }) {
+      const CustomLabel = (props) => {
+        const { x, y, width, height, value, index } = props;
+        const item = data[index];
+        const isPos = item.change > 0;
+        return (
+          <text
+            x={isPos ? x + width + 6 : x - 6}
+            y={y + height / 2 + 4}
+            fill={C.muted}
+            fontSize={10}
+            textAnchor={isPos ? 'start' : 'end'}
+          >
+            ${item.medianWage}/hr
+          </text>
+        );
+      };
+
+      return (
+        <ResponsiveContainer width="100%" height={280}>
+          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 80, left: 0, bottom: 4 }}>
+            <CartesianGrid {...CHART_PROPS.gridStyle} horizontal={false} />
+            <XAxis type="number" tick={CHART_PROPS.axisStyle} tickFormatter={v => v >= 0 ? `+${(v/1000).toFixed(0)}K` : `${(v/1000).toFixed(0)}K`} />
+            <YAxis type="category" dataKey="sector" tick={{ fontSize: 11, fill: C.muted }} width={130} />
+            <Tooltip
+              formatter={(v) => [`${v >= 0 ? '+' : ''}${v.toLocaleString()}`, 'Job Change']}
+              contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }}
+            />
+            <ReferenceLine x={0} stroke={C.border} />
+            <Bar dataKey="change" radius={0}>
+              {data.map((entry, i) => (
+                <Cell key={i} fill={entry.change >= 0 ? C.green : C.red} />
+              ))}
+              <LabelList content={<CustomLabel />} />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    function JobCreationChart() {
+      const intensities = ['#7f1d1d', '#b91c1c', '#dc2626', '#ef4444'];
+      return (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={jobCreationTrend} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <CartesianGrid {...CHART_PROPS.gridStyle} />
+            <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+            <YAxis tick={CHART_PROPS.axisStyle} tickFormatter={v => `${v}K`} />
+            <Tooltip formatter={(v) => [`${v}K`, 'Jobs Added']} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+            <Bar dataKey="jobs" radius={0}>
+              {jobCreationTrend.map((_, i) => <Cell key={i} fill={intensities[i]} />)}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    function LaborMarket() {
+      return (
+        <div>
+          <SectionHeader title="Labor Market & Sectors" subtitle="Employment trends, sector performance, and job market health — Dec 2025" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
+            {employmentMetrics.map((m, i) => <MetricCard key={i} {...m} />)}
+          </div>
+
+          <ChartSection title="Employment Change by Sector — Over-the-Year (Median Hourly Wage in Gray)" source="Source: NYS DOL, BLS QCEW. Placeholder — verify with source documents.">
+            <SectorBar data={sectorChanges} />
+            <p style={{ fontSize: 11, color: C.amber, marginTop: 8 }}>
+              ⚠ After benchmark revisions, gains in Professional & Business Services and Information are expected to be revised away (NYC Comptroller, Feb 2026).
+            </p>
+          </ChartSection>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <ChartSection title="Private Sector Job Creation — Jan–Jul by Year (thousands)" source="Source: NYS DOL. Placeholder.">
+              <JobCreationChart />
+            </ChartSection>
+
+            <ChartSection title="Entry-Level Job Postings 2019–2024 (thousands)" source="Source: Lightcast / NYCEDC. Placeholder.">
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={entryLevelPostings} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid {...CHART_PROPS.gridStyle} />
+                  <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                  <YAxis domain={[0, 100]} tick={CHART_PROPS.axisStyle} tickFormatter={v => `${v}K`} />
+                  <Tooltip formatter={(v) => [`${v}K`, 'Postings']} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                  <ReferenceLine y={93} stroke={C.muted} strokeDasharray="5 3" label={{ value: "~93K annual grad supply", position: 'top', fill: C.muted, fontSize: 11 }} />
+                  <Line type="monotone" dataKey="postings" name="Entry-Level Postings" stroke={C.blue} strokeWidth={2} dot={{ fill: C.blue, r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartSection>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── LAYER 3: FISCAL & ECONOMIC OUTLOOK ───────────────────────────────────
+
+    const PIE_COLORS = [C.blue, C.cyan, C.indigo, C.purple, C.amber];
+
+    function TaxDonut() {
+      const RADIAN = Math.PI / 180;
+      const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, amount }) => {
+        const radius = innerRadius + (outerRadius - innerRadius) * 1.4;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+        return (
+          <text x={x} y={y} fill={C.muted} textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={11}>
+            {name} ${amount}B
+          </text>
+        );
+      };
+      return (
+        <ResponsiveContainer width="100%" height={280}>
+          <PieChart>
+            <Pie data={taxRevenueSources} cx="50%" cy="50%" innerRadius={70} outerRadius={110}
+              dataKey="amount" nameKey="source" labelLine={false} label={renderLabel}>
+              {taxRevenueSources.map((_, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
+            </Pie>
+            <Tooltip formatter={(v, n) => [`$${v}B`, n]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+          </PieChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    function FiscalOutlook() {
+      return (
+        <div>
+          <SectionHeader title="Fiscal & Economic Outlook" subtitle="Tax revenues, budget gaps, and multi-year projections" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
+            {fiscalMetrics.map((m, i) => <MetricCard key={i} {...m} />)}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
+            <ChartSection title="FY2026 Tax Revenue by Source" source="Source: NYC OMB. Placeholder.">
+              <TaxDonut />
+            </ChartSection>
+
+            <ChartSection title="Revenue Projections FY2025–FY2030 ($B) — Three Scenarios" source="Source: NYC OMB, NYC Comptroller. Placeholder.">
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={revenueProjections} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid {...CHART_PROPS.gridStyle} />
+                  <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                  <YAxis domain={[75, 105]} tick={CHART_PROPS.axisStyle} tickFormatter={v => `$${v}B`} />
+                  <Tooltip formatter={(v) => [`$${v}B`]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <ReferenceArea dataKey="omb" fill={C.red} fillOpacity={0.06} />
+                  <Line type="monotone" dataKey="omb" name="OMB Forecast" stroke={C.blue} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="comptroller" name="Comptroller Forecast" stroke={C.green} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="stagnation" name="Stagnation Scenario" stroke={C.red} strokeWidth={1.5} strokeDasharray="5 3" dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartSection>
+          </div>
+
+          <ChartSection title="Projected Budget Gaps FY2026–FY2030 ($B) — With vs. Without Property Tax Increase" source="Source: NYC Comptroller, CBC. Placeholder.">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={budgetGaps} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid {...CHART_PROPS.gridStyle} />
+                <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                <YAxis tick={CHART_PROPS.axisStyle} tickFormatter={v => `$${v}B`} />
+                <Tooltip formatter={(v) => [`$${v}B`]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="withIncrease" name="With Property Tax Increase" fill={C.blue} radius={0} />
+                <Bar dataKey="without" name="Without Property Tax Increase" fill={C.red} radius={0} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartSection>
+
+          <ChartSection title="Entry-Level Jobs vs. Annual Graduate Supply 2022–2031 (thousands)" source="Source: BLS Employment Projections 2024–2034, Lightcast, CUNY IR. Placeholder.">
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={entryLevelVsSupply} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid {...CHART_PROPS.gridStyle} />
+                <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                <YAxis domain={[20, 100]} tick={CHART_PROPS.axisStyle} tickFormatter={v => `${v}K`} />
+                <Tooltip formatter={(v) => [`${v}K`]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <ReferenceArea y1={20} y2={93} fill={C.red} fillOpacity={0.04} />
+                <Line type="monotone" dataKey="supply" name="Annual Graduate Supply" stroke={C.muted} strokeWidth={1.5} strokeDasharray="6 3" dot={false} />
+                <Line type="monotone" dataKey="baseline" name="BLS Baseline" stroke={C.blue} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="moderate" name="Moderate Displacement" stroke={C.amber} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="accelerated" name="Accelerated Displacement" stroke={C.red} strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartSection>
+
+          <ChartSection title="Cumulative PIT Revenue Lost from Underemployed Graduates ($M) — 2022–2031" source="Source: NYC Comptroller PIT analysis, Center for an Urban Future estimates. Placeholder.">
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={pitRevenueLost} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid {...CHART_PROPS.gridStyle} />
+                <XAxis dataKey="year" tick={CHART_PROPS.axisStyle} />
+                <YAxis tick={CHART_PROPS.axisStyle} tickFormatter={v => `$${v}M`} />
+                <Tooltip formatter={(v) => [`$${v}M`]} contentStyle={{ background: C.card, border: `1px solid ${C.border}`, fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="moderate" name="Moderate Scenario" fill={C.blue} radius={0} />
+                <Bar dataKey="accelerated" name="Accelerated Scenario" fill={C.red} radius={0} />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartSection>
+        </div>
+      );
+    }
+
+    // ─── LAYER 4: MOBILITYSTAT ────────────────────────────────────────────────
+
+    function StatusBadge({ status }) {
+      const config = {
+        action: { label: 'Action Required', color: C.red, bg: 'rgba(239,68,68,0.1)' },
+        watch: { label: 'Watch', color: C.amber, bg: 'rgba(245,158,11,0.1)' },
+        track: { label: 'On Track', color: C.green, bg: 'rgba(16,185,129,0.1)' }
+      }[status] || { label: 'Unknown', color: C.muted, bg: 'transparent' };
+      return (
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: config.color, background: config.bg, border: `1px solid ${config.color}`, padding: '2px 8px' }}>
+          {config.label.toUpperCase()}
+        </span>
+      );
+    }
+
+    function AgencyCard({ name, fullName, description, owner, status, metrics }) {
+      const sentimentColor = (s, t) => {
+        if (s === 'positive') return C.green;
+        if (s === 'negative') return C.red;
+        if (s === 'warning') return C.amber;
+        return C.muted;
+      };
+      return (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, padding: '16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.text }}>{name}</div>
+              <div style={{ fontSize: 11, color: C.muted }}>{fullName}</div>
+            </div>
+            <StatusBadge status={status} />
+          </div>
+          <p style={{ fontSize: 12, color: C.dim, margin: 0 }}>{description}</p>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12 }}>
+            {metrics.map((m, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i < metrics.length - 1 ? 8 : 0 }}>
+                <span style={{ fontSize: 12, color: C.muted }}>{m.label}</span>
+                {m.pending ? (
+                  <span style={{ fontSize: 11, color: C.dim, fontStyle: 'italic' }}>Data pending</span>
+                ) : (
+                  <span style={{ fontSize: 13, fontWeight: 600, color: sentimentColor(m.sentiment), display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {m.trend && <TrendArrow trend={m.trend} sentiment={m.sentiment} />}
+                    {m.value}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 10, color: C.dim, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>Owner: {owner}</div>
+        </div>
+      );
+    }
+
+    function MobilitySTAT() {
+      const statusOrder = { action: 0, watch: 1, track: 2 };
+      const sorted = [...agencies].sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+      const counts = { action: agencies.filter(a => a.status === 'action').length, watch: agencies.filter(a => a.status === 'watch').length, track: agencies.filter(a => a.status === 'track').length };
+      return (
+        <div>
+          <SectionHeader title="MobilitySTAT" subtitle="Agency accountability — owned metrics with trend indicators" />
+          <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+            {[['action', C.red, 'Action Required'], ['watch', C.amber, 'Watch'], ['track', C.green, 'On Track']].map(([k, color, label]) => (
+              <div key={k} style={{ background: C.card, border: `1px solid ${C.border}`, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 8, height: 8, background: color, display: 'inline-block' }}></span>
+                <span style={{ fontSize: 12, color: C.muted }}>{label}</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color }}>{counts[k]}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
+            {sorted.map((a, i) => <AgencyCard key={i} {...a} />)}
+          </div>
+        </div>
+      );
+    }
+
+    // ─── LAYOUT ───────────────────────────────────────────────────────────────
+
+    const NAV_ITEMS = [
+      { id: 'people', label: 'People & Pipeline', layer: '01' },
+      { id: 'labor', label: 'Labor Market & Sectors', layer: '02' },
+      { id: 'fiscal', label: 'Fiscal & Economic Outlook', layer: '03' },
+      { id: 'mobilitystat', label: 'MobilitySTAT', layer: '04' }
+    ];
+
+    function App() {
+      const [active, setActive] = useState('people');
+
+      const pages = {
+        people: <PeoplePipeline />,
+        labor: <LaborMarket />,
+        fiscal: <FiscalOutlook />,
+        mobilitystat: <MobilitySTAT />
+      };
+
+      return (
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+          {/* Sidebar */}
+          <div style={{ width: 220, background: '#0b1628', borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <div style={{ padding: '20px 16px', borderBottom: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4 }}>Office of the</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8 }}>Deputy Mayor</div>
+              <div style={{ fontSize: 10, color: C.dim, letterSpacing: '0.06em' }}>Economic Mobility</div>
+            </div>
+            <nav style={{ flex: 1, padding: '12px 0' }}>
+              {NAV_ITEMS.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActive(item.id)}
+                  style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    padding: '12px 16px', background: active === item.id ? C.card : 'transparent',
+                    borderLeft: active === item.id ? `3px solid ${C.blue}` : '3px solid transparent',
+                    border: 'none', cursor: 'pointer', transition: 'background 0.15s'
+                  }}
+                >
+                  <div style={{ fontSize: 10, color: active === item.id ? C.blue : C.dim, letterSpacing: '0.08em', marginBottom: 3 }}>LAYER {item.layer}</div>
+                  <div style={{ fontSize: 13, color: active === item.id ? C.text : C.muted, fontWeight: active === item.id ? 600 : 400 }}>{item.label}</div>
+                </button>
+              ))}
+            </nav>
+            <div style={{ padding: '16px', borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontSize: 10, color: C.dim }}>Last updated</div>
+              <div style={{ fontSize: 11, color: C.muted, fontWeight: 500 }}>March 2026</div>
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Header */}
+            <div style={{ background: '#0b1628', borderBottom: `1px solid ${C.border}`, padding: '14px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <span style={{ fontSize: 14, fontWeight: 700, color: C.text, letterSpacing: '0.04em' }}>NYC ECONOMIC MOBILITY DASHBOARD</span>
+              </div>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: C.dim }}>v1.0 · Internal Use Only</span>
+                <span style={{ fontSize: 11, color: C.muted, background: C.card, padding: '3px 10px', border: `1px solid ${C.border}` }}>DEC 2025 DATA</span>
+              </div>
+            </div>
+
+            {/* Page content */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              {pages[active]}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
