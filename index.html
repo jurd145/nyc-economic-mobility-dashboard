@@ -37,12 +37,14 @@
     .data-pending { animation: pendingPulse 2s ease-in-out infinite; }
     @keyframes pendingPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
     #content { transition: opacity 0.15s ease; }
+    .findings-panel { background: #1a2744; border-left: 3px solid #3b82f6; padding: 16px 20px; margin-bottom: 16px; border-radius: 0 4px 4px 0; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #sidebar { display: none !important; }
       #content { padding: 12px !important; }
-      .metric-card, .chart-section, .agency-card { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
-      .metric-card div, .agency-card div, .agency-card p, .agency-card span, .chart-title, .source-cite, h2, h2+p { color: #000 !important; }
+      .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
+      .metric-card div, .agency-card div, .agency-card p, .agency-card span, .chart-title, .source-cite, h2, h2+p, .findings-panel div, .findings-panel p { color: #000 !important; }
       .status-badge { border-color: #666 !important; color: #000 !important; background: #eee !important; }
       .funnel-bar-bg { background: #ddd !important; }
       .nav-btn { display: none !important; }
@@ -70,7 +72,7 @@
       <div style="background:#0b1628; border-bottom:1px solid #334155; padding:14px 24px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
         <span style="font-size:14px; font-weight:700; color:#f1f5f9; letter-spacing:0.04em;">NYC ECONOMIC MOBILITY DASHBOARD</span>
         <div style="display:flex; gap:16px; align-items:center;">
-          <span style="font-size:11px; color:#475569;">v1.0 &middot; Internal Use Only</span>
+          <span style="font-size:11px; color:#475569;">v2.0 &middot; Internal Use Only</span>
           <span id="dataPeriod" style="font-size:11px; color:#64748b; background:#1e293b; padding:3px 10px; border:1px solid #334155;">DEC 2025 DATA</span>
         </div>
       </div>
@@ -81,7 +83,7 @@
 <script>
 var LAST_UPDATED = 'March 2026';
 var DATA_PERIOD = 'DEC 2025 DATA';
-var C = { bg:'#0f172a', card:'#1e293b', border:'#334155', text:'#f1f5f9', muted:'#64748b', dim:'#475569', blue:'#3b82f6', green:'#10b981', red:'#ef4444', amber:'#f59e0b', indigo:'#6366f1', purple:'#a855f7', cyan:'#06b6d4' };
+var C = { bg:'#0f172a', card:'#1e293b', border:'#334155', text:'#f1f5f9', muted:'#64748b', dim:'#475569', blue:'#3b82f6', green:'#10b981', red:'#ef4444', amber:'#f59e0b', indigo:'#6366f1', purple:'#a855f7', cyan:'#06b6d4', light:'#94a3b8' };
 Chart.defaults.color = C.muted;
 Chart.defaults.borderColor = '#1e293b';
 Chart.defaults.font.family = 'Inter, sans-serif';
@@ -94,19 +96,21 @@ Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.titleColor = C.muted;
 Chart.defaults.plugins.tooltip.bodyColor = C.text;
 Chart.defaults.plugins.tooltip.padding = 10;
-Chart.defaults.scale.grid = { color: 'rgba(30,41,59,0.8)', drawBorder: false };
+Chart.defaults.scale.grid.color = 'rgba(30,41,59,0.8)';
+
+/* ── DATA ─────────────────────────────────────────────────────────────────── */
 
 var educationMetrics = [
-  { label:"HS GRADUATION RATE", value:"81.2%", context:"-2.0pp YoY \u2014 largest drop in 20 years", trend:"down", sentiment:"negative" },
-  { label:"COLLEGE ENROLLMENT RATE", value:"71%", context:"Down from 81% in 2019", trend:"down", sentiment:"negative" },
-  { label:"CUNY 3-YR ASSOCIATE'S COMPLETION", value:"25%", context:"ASAP students: 53%", trend:"flat", sentiment:"negative" },
-  { label:"CUNY 6-YR BACHELOR'S COMPLETION", value:"53%", context:"Varies widely by campus", trend:"up", sentiment:"warning" },
-  { label:"CUNY PAID INTERNSHIP RATE", value:"12%", context:"National average: 57%", trend:"flat", sentiment:"negative" },
-  { label:"YOUTH UNEMPLOYMENT (UNDER 24)", value:"7.6%", context:"Non-college youth, Dec 2025", trend:"flat", sentiment:"negative" },
-  { label:"NYC UNEMPLOYMENT RATE", value:"5.6%", context:"Dec 2025 (NYS: 4.6%)", trend:"flat", sentiment:"negative" },
-  { label:"ENTRY-LEVEL POSTINGS", value:"45,354", context:"-37.4% since 2022", trend:"down", sentiment:"negative" },
-  { label:"UNDEREMPLOYED WORKING-AGE NYers", value:"1.1M", context:"Unemployed + underemployed + min wage", trend:"flat", sentiment:"negative" },
-  { label:"BLACK UNEMPLOYMENT", value:"9.6%", context:"Dec 2025", trend:"flat", sentiment:"negative" }
+  { label:"HS GRADUATION RATE", value:"81.2%", numVal:81.2, context:"-2.0pp YoY \u2014 largest drop in 20 years", trend:"down", sentiment:"negative", sparkData:[82.6,83.4,83.3,83.3,81.2], disagg:"Students w/ disabilities: 59% | ELLs: 51%", disaggAlert:true },
+  { label:"COLLEGE ENROLLMENT RATE", value:"71%", numVal:71, context:"Down from 81% in 2019", trend:"down", sentiment:"negative", sparkData:[81,76,71,70,69] },
+  { label:"CUNY 3-YR ASSOCIATE'S COMPLETION", value:"25%", numVal:25, context:"ASAP students: 53%", trend:"flat", sentiment:"negative" },
+  { label:"CUNY 6-YR BACHELOR'S COMPLETION", value:"53%", numVal:53, context:"Varies widely by campus", trend:"up", sentiment:"warning", sparkData:[49,50,51,52,53] },
+  { label:"CUNY PAID INTERNSHIP RATE", value:"12%", numVal:12, context:"National average: 57%", trend:"flat", sentiment:"negative" },
+  { label:"YOUTH UNEMPLOYMENT (UNDER 24)", value:"7.6%", numVal:7.6, context:"Non-college youth, Dec 2025", trend:"flat", sentiment:"negative" },
+  { label:"NYC UNEMPLOYMENT RATE", value:"5.6%", numVal:5.6, context:"Dec 2025 (NYS: 4.6%)", trend:"flat", sentiment:"negative", disagg:"Black: 9.6% | Youth (<24): 7.6%", disaggAlert:true },
+  { label:"ENTRY-LEVEL POSTINGS", value:"45,354", numVal:45.354, context:"-37.4% since 2022", trend:"down", sentiment:"negative", sparkData:[68,72.5,58,45.4] },
+  { label:"UNDEREMPLOYED WORKING-AGE NYers", value:"1.1M", numVal:1100000, context:"Unemployed + underemployed + min wage", trend:"flat", sentiment:"negative" },
+  { label:"BLACK UNEMPLOYMENT", value:"9.6%", numVal:9.6, context:"Dec 2025", trend:"flat", sentiment:"negative" }
 ];
 var funnelStages = [
   { stage:"Enter 9th Grade", count:"72,000", pct:100 },
@@ -125,7 +129,7 @@ var educationTrends = {
 var employmentMetrics = [
   { label:"PRIVATE SECTOR JOBS", value:"4,332,300", context:"Dec 2025", trend:"flat", sentiment:"neutral" },
   { label:"OVER-THE-YEAR JOB CHANGE", value:"+33,400", context:"Almost entirely healthcare", trend:"up", sentiment:"warning" },
-  { label:"JOB CREATION (JAN\u2013JUL 2025)", value:"5,100", context:"Down from 173K in 2022", trend:"down", sentiment:"negative" },
+  { label:"JOB CREATION (JAN\u2013JUL 2025)", value:"5,100", context:"Down from 173K in 2022", trend:"down", sentiment:"negative", sparkData:[173,41.6,68.1,5.1] },
   { label:"JOB OPENINGS (NY STATE)", value:"372,000", context:"Dec 2025, rate: 3.6%", trend:"flat", sentiment:"neutral" },
   { label:"UNEMPLOYED PER JOB OPENING", value:"1.2", context:"Dec 2025", trend:"flat", sentiment:"warning" },
   { label:"ENTRY-LEVEL POSTINGS DECLINE", value:"-37.4%", context:"2022 to 2024", trend:"down", sentiment:"negative" }
@@ -151,40 +155,228 @@ var revProjections = { labels:["FY2025","FY2026","FY2027","FY2028","FY2029","FY2
 var budgetGaps = { labels:["FY2026","FY2027","FY2028","FY2029","FY2030"], withIncrease:[0.8,2.85,10.06,8.58,6.96], without:[0.8,6.53,13.87,12.53,11.09] };
 var elvSupply = { labels:[2022,2023,2024,2025,2026,2027,2028,2029,2030,2031], baseline:[72.5,58.0,45.4,43.0,43.5,44.5,46.0,47.5,49.0,51.0], moderate:[72.5,58.0,45.4,43.0,40.9,38.8,36.9,35.0,33.3,31.6], accelerated:[72.5,58.0,45.4,43.0,39.6,36.4,33.5,30.8,28.3,26.1], supply:[93,93,93,93,93,93,93,93,93,93] };
 var pitLost = { labels:["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031"], moderate:[29,77,143,213,286,362,440,521,604,690], accelerated:[29,77,143,213,288,367,450,537,627,720] };
+
 var agencies = [
-  { name:"DOE", fullName:"Department of Education", description:"K-12 outcomes, CTE pathways, dual enrollment, and credential attainment", owner:"Portfolio Owner TBD", status:"action", metrics:[{label:"HS Graduation Rate",value:"81.2%",trend:"down",sentiment:"negative"},{label:"CTE Enrollment",pending:true},{label:"Dual Enrollment Participation",pending:true},{label:"Students Earning Industry Credentials",pending:true}]},
-  { name:"CUNY", fullName:"City University of New York", description:"Enrollment, completion rates, paid internship placements, and workforce readiness", owner:"Portfolio Owner TBD", status:"action", metrics:[{label:"Total Enrollment",value:"~232,000",trend:"down",sentiment:"warning"},{label:"3-Year Associate's Completion",value:"25%",trend:"flat",sentiment:"negative"},{label:"6-Year Bachelor's Completion",value:"53%",trend:"up",sentiment:"warning"},{label:"Paid Internship Completion",value:"12%",trend:"flat",sentiment:"negative"}]},
-  { name:"SBS", fullName:"Small Business Services", description:"Workforce program placements, employer partnerships, and small business regulatory relief", owner:"Portfolio Owner TBD", status:"watch", metrics:[{label:"Workforce Program Placements",pending:true},{label:"90-Day Retention Rate",pending:true},{label:"Small Business Regulatory Burden Reduction",pending:true},{label:"Active Employer Partnerships",pending:true}]},
-  { name:"NYCEDC", fullName:"NYC Economic Development Corp.", description:"Private sector job creation, sector diversification, and MWBE utilization", owner:"Portfolio Owner TBD", status:"action", metrics:[{label:"Private Sector Job Creation (Jan\u2013Jul 2025)",value:"+5,100",trend:"down",sentiment:"negative"},{label:"MWBE Contract Utilization",pending:true},{label:"Business Formation Rate",pending:true},{label:"Sector Diversification Index",pending:true}]},
-  { name:"DYCD", fullName:"Youth & Community Development", description:"Youth program enrollment, summer employment, and post-program outcomes", owner:"Portfolio Owner TBD", status:"watch", metrics:[{label:"Youth Program Enrollment",pending:true},{label:"Summer Youth Employment Slots",pending:true},{label:"Post-Program Employment Rate",pending:true}]},
-  { name:"HRA", fullName:"Human Resources Administration", description:"Adult workforce programs, placement rates, and wage trajectories", owner:"Portfolio Owner TBD", status:"watch", metrics:[{label:"Adult Workforce Program Enrollment",pending:true},{label:"Placement Rate",pending:true},{label:"Placement Wage at 90 Days",pending:true},{label:"Placement Wage at 1 Year",pending:true}]},
-  { name:"NYC TALENT", fullName:"NYC Talent / Workforce Development", description:"Apprenticeships, CareerWise placements, and AI Workforce Fund programs", owner:"Portfolio Owner TBD", status:"watch", metrics:[{label:"Apprenticeship Enrollment",pending:true},{label:"CareerWise Placements",pending:true},{label:"AI Workforce Fund Enrollment",pending:true}]}
+  { name:"DOE", fullName:"Department of Education", description:"K-12 outcomes, CTE pathways, dual enrollment, and credential attainment", owner:"Portfolio Owner TBD", status:"action", metrics:[
+    {label:"HS Graduation Rate",value:"81.2%",numVal:81.2,trend:"down",sentiment:"negative",target:85,targetYear:"FY2028",lowerIsBetter:false},
+    {label:"CTE Enrollment",pending:true,target:null,targetYear:null},
+    {label:"Dual Enrollment Participation",pending:true,target:null,targetYear:null},
+    {label:"Students Earning Industry Credentials",pending:true,target:null,targetYear:null}
+  ]},
+  { name:"CUNY", fullName:"City University of New York", description:"Enrollment, completion rates, paid internship placements, and workforce readiness", owner:"Portfolio Owner TBD", status:"action", metrics:[
+    {label:"Total Enrollment",value:"~232,000",numVal:232000,trend:"down",sentiment:"warning",target:250000,targetYear:"FY2028",lowerIsBetter:false},
+    {label:"3-Year Associate's Completion",value:"25%",numVal:25,trend:"flat",sentiment:"negative",target:35,targetYear:"FY2028",lowerIsBetter:false},
+    {label:"6-Year Bachelor's Completion",value:"53%",numVal:53,trend:"up",sentiment:"warning",target:60,targetYear:"FY2028",lowerIsBetter:false},
+    {label:"Paid Internship Completion",value:"12%",numVal:12,trend:"flat",sentiment:"negative",target:25,targetYear:"FY2028",lowerIsBetter:false}
+  ]},
+  { name:"SBS", fullName:"Small Business Services", description:"Workforce program placements, employer partnerships, and small business regulatory relief", owner:"Portfolio Owner TBD", status:"watch", metrics:[
+    {label:"Workforce Program Placements",pending:true,target:null,targetYear:null},
+    {label:"90-Day Retention Rate",pending:true,target:null,targetYear:null},
+    {label:"Small Business Regulatory Burden Reduction",pending:true,target:null,targetYear:null},
+    {label:"Active Employer Partnerships",pending:true,target:null,targetYear:null}
+  ]},
+  { name:"NYCEDC", fullName:"NYC Economic Development Corp.", description:"Private sector job creation, sector diversification, and MWBE utilization", owner:"Portfolio Owner TBD", status:"action", metrics:[
+    {label:"Private Sector Job Creation (Jan\u2013Jul)",value:"+5,100",numVal:5.1,trend:"down",sentiment:"negative",target:50,targetYear:"FY2026",lowerIsBetter:false},
+    {label:"MWBE Contract Utilization",pending:true,target:null,targetYear:null},
+    {label:"Business Formation Rate",pending:true,target:null,targetYear:null},
+    {label:"Sector Diversification Index",pending:true,target:null,targetYear:null}
+  ]},
+  { name:"DYCD", fullName:"Youth & Community Development", description:"Youth program enrollment, summer employment, and post-program outcomes", owner:"Portfolio Owner TBD", status:"watch", metrics:[
+    {label:"Youth Program Enrollment",pending:true,target:null,targetYear:null},
+    {label:"Summer Youth Employment Slots",pending:true,target:null,targetYear:null},
+    {label:"Post-Program Employment Rate",pending:true,target:null,targetYear:null}
+  ]},
+  { name:"HRA", fullName:"Human Resources Administration", description:"Adult workforce programs, placement rates, and wage trajectories", owner:"Portfolio Owner TBD", status:"watch", metrics:[
+    {label:"Adult Workforce Program Enrollment",pending:true,target:null,targetYear:null},
+    {label:"Placement Rate",pending:true,target:null,targetYear:null},
+    {label:"Placement Wage at 90 Days",pending:true,target:null,targetYear:null},
+    {label:"Placement Wage at 1 Year",pending:true,target:null,targetYear:null}
+  ]},
+  { name:"NYC TALENT", fullName:"NYC Talent / Workforce Development", description:"Apprenticeships, CareerWise placements, and AI Workforce Fund programs", owner:"Portfolio Owner TBD", status:"watch", metrics:[
+    {label:"Apprenticeship Enrollment",pending:true,target:null,targetYear:null},
+    {label:"CareerWise Placements",pending:true,target:null,targetYear:null},
+    {label:"AI Workforce Fund Enrollment",pending:true,target:null,targetYear:null}
+  ]}
 ];
+
+/* ── HELPERS ──────────────────────────────────────────────────────────────── */
 
 function sentimentColor(s) { return s==='positive'?C.green:s==='negative'?C.red:s==='warning'?C.amber:C.muted; }
 function trendArrow(t) { return t==='up'?'\u2191':t==='down'?'\u2193':'\u2192'; }
 function funnelColor(p) { return p===null?C.dim:p>=75?C.green:p>=50?C.amber:C.red; }
 
-function metricCardsHTML(metrics) {
-  var h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px;">';
-  for (var i = 0; i < metrics.length; i++) {
-    var m = metrics[i];
-    var arrow = m.trend ? '<span>' + trendArrow(m.trend) + '</span>' : '';
-    h += '<div class="metric-card"><div style="font-size:10px;letter-spacing:0.08em;color:' + C.muted + ';margin-bottom:8px;font-weight:600;">' + m.label + '</div><div style="font-size:28px;font-weight:700;color:' + C.text + ';line-height:1;margin-bottom:8px;">' + m.value + '</div><div style="font-size:12px;color:' + sentimentColor(m.sentiment) + ';display:flex;align-items:center;gap:4px;">' + arrow + '<span>' + m.context + '</span></div></div>';
+function buildSparkline(data) {
+  if (!data || data.length < 3) return '';
+  var max = Math.max.apply(null, data);
+  var min = Math.min.apply(null, data);
+  var range = max - min || 1;
+  var color = data[data.length-1] >= data[0] ? C.green : C.red;
+  var h = '<div style="display:flex;align-items:flex-end;gap:2px;height:20px;margin-top:6px;">';
+  for (var i = 0; i < data.length; i++) {
+    var ht = Math.max(3, Math.round(((data[i] - min) / range) * 18));
+    var opacity = i === data.length - 1 ? '1' : '0.5';
+    h += '<div style="width:6px;background:' + color + ';height:' + ht + 'px;border-radius:1px;opacity:' + opacity + ';"></div>';
   }
   return h + '</div>';
 }
+
+function metricCardsHTML(metrics) {
+  var h = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:16px;">';
+  for (var i = 0; i < metrics.length; i++) {
+    var m = metrics[i];
+    var arrow = m.trend ? '<span>' + trendArrow(m.trend) + '</span>' : '';
+    h += '<div class="metric-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+      '<div style="flex:1;"><div style="font-size:10px;letter-spacing:0.08em;color:' + C.muted + ';margin-bottom:8px;font-weight:600;">' + m.label + '</div>' +
+      '<div style="font-size:28px;font-weight:700;color:' + C.text + ';line-height:1;margin-bottom:8px;">' + m.value + '</div>' +
+      '<div style="font-size:12px;color:' + sentimentColor(m.sentiment) + ';display:flex;align-items:center;gap:4px;">' + arrow + '<span>' + m.context + '</span></div></div>';
+    if (m.sparkData) {
+      h += '<div style="margin-left:8px;flex-shrink:0;">' + buildSparkline(m.sparkData) + '</div>';
+    }
+    h += '</div>';
+    if (m.disagg) {
+      h += '<div style="border-top:1px solid ' + C.border + ';margin-top:8px;padding-top:6px;font-size:11px;color:' + C.light + ';">' + m.disagg + '</div>';
+    }
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
 function sectionHeader(title, subtitle) {
   var sub = subtitle ? '<p style="font-size:12px;color:' + C.muted + ';margin:4px 0 0;">' + subtitle + '</p>' : '';
-  return '<div style="margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid ' + C.border + ';"><h2 style="font-size:18px;font-weight:700;color:' + C.text + ';margin:0;">' + title + '</h2>' + sub + '</div>';
+  return '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid ' + C.border + ';"><h2 style="font-size:18px;font-weight:700;color:' + C.text + ';margin:0;">' + title + '</h2>' + sub + '</div>';
 }
+
+function guidingQuestions(text) {
+  return '<p style="font-size:12px;font-style:italic;color:' + C.light + ';margin:0 0 16px 0;line-height:1.5;">' + text + '</p>';
+}
+
 function chartBox(id, title, source, extra) {
   var src = source ? '<p class="source-cite">' + source + '</p>' : '';
   return '<div class="chart-section"><div class="chart-title">' + title + '</div><div><canvas id="' + id + '"></canvas></div>' + (extra || '') + src + '</div>';
 }
+
 var activeCharts = [];
 function destroyCharts() { for (var i = 0; i < activeCharts.length; i++) activeCharts[i].destroy(); activeCharts = []; }
 function addChart(c) { activeCharts.push(c); return c; }
+
+/* ── FINDINGS PANEL ("SO WHAT") ───────────────────────────────────────────── */
+
+function findingsPanel(headline, bullets, closing) {
+  var h = '<div class="findings-panel">';
+  h += '<div style="font-size:14px;font-weight:700;color:' + C.text + ';margin-bottom:10px;">' + headline + '</div>';
+  for (var i = 0; i < bullets.length; i++) {
+    h += '<p style="font-size:12px;color:' + C.light + ';margin:0 0 6px 0;line-height:1.5;">\u2022 ' + bullets[i] + '</p>';
+  }
+  h += '<p style="font-size:12px;font-style:italic;color:' + C.muted + ';margin:8px 0 0 0;line-height:1.5;">' + closing + '</p>';
+  return h + '</div>';
+}
+
+function generateFindings(layer) {
+  if (layer === 'people') {
+    var declined = 0; var total = 0;
+    for (var i = 0; i < educationMetrics.length; i++) {
+      total++;
+      if (educationMetrics[i].sentiment === 'negative') declined++;
+    }
+    var hsVal = educationTrends.hsGrad[educationTrends.hsGrad.length - 1];
+    var hsPrev = educationTrends.hsGrad[educationTrends.hsGrad.length - 2];
+    var hsDelta = Math.round((hsVal - hsPrev) * 10) / 10;
+    var enrollVal = 71;
+    var internVal = 12;
+    var headline = declined + ' of ' + total + ' pipeline metrics are flagged negative.';
+    if (hsVal < hsPrev) {
+      headline = 'The education pipeline is losing students at every stage \u2014 ' + declined + ' of ' + total + ' metrics declined.';
+    } else if (hsVal > hsPrev) {
+      headline = 'The HS graduation rate improved to ' + hsVal + '%, but ' + declined + ' of ' + total + ' pipeline metrics remain negative.';
+    }
+    var bullets = [];
+    if (hsVal < hsPrev) {
+      bullets.push('The HS graduation rate fell to ' + hsVal + '%, a ' + Math.abs(hsDelta) + 'pp decline \u2014 the steepest drop in two decades.');
+    } else {
+      bullets.push('The HS graduation rate stands at ' + hsVal + '%, ' + (hsVal > hsPrev ? 'up ' + hsDelta + 'pp' : 'unchanged') + ' from the prior year.');
+    }
+    if (enrollVal < 75) {
+      bullets.push('Only ' + enrollVal + '% of NYC high school graduates enrolled in college, down from 81% in 2019. Nearly ' + (100 - enrollVal) + '% of graduates are entering adulthood without a postsecondary plan.');
+    }
+    if (internVal < 20) {
+      bullets.push('Just ' + internVal + '% of CUNY undergraduates complete a paid internship, compared to 57% nationally. This gap is the single largest barrier between education and employment in the city\u2019s pipeline.');
+    }
+    var closing = 'Without structural intervention in career-connected learning and employer partnerships, the pipeline will continue to produce graduates the labor market cannot absorb.';
+    return findingsPanel(headline, bullets, closing);
+  }
+  if (layer === 'labor') {
+    var totalGain = 0; var totalLoss = 0; var topSector = ''; var topGain = 0;
+    for (var i = 0; i < sectorData.changes.length; i++) {
+      if (sectorData.changes[i] > 0) { totalGain += sectorData.changes[i]; if (sectorData.changes[i] > topGain) { topGain = sectorData.changes[i]; topSector = sectorData.sectors[i]; } }
+      else totalLoss += sectorData.changes[i];
+    }
+    var topPct = totalGain > 0 ? Math.round(topGain / totalGain * 100) : 0;
+    var elPeak = 72.5; var elCurrent = entryLevel.values[entryLevel.values.length - 1];
+    var elDecline = Math.round((1 - elCurrent / elPeak) * 1000) / 10;
+    var gradsPerPosting = Math.round(93 / elCurrent * 10) / 10;
+    var jcCurrent = jobCreation.values[jobCreation.values.length - 1];
+
+    var headline = topPct > 80
+      ? 'Job creation in NYC is running on a single engine: ' + topSector + ' accounted for ' + topPct + '% of all jobs added.'
+      : 'The labor market added ' + totalGain.toLocaleString() + ' jobs but lost ' + Math.abs(totalLoss).toLocaleString() + ' across other sectors.';
+    var bullets = [];
+    bullets.push('Entry-level job postings have fallen ' + elDecline + '% since 2022, from ' + elPeak + 'K to ' + elCurrent + 'K. Roughly ' + gradsPerPosting + ' graduates now compete for every available entry-level position.');
+    if (jcCurrent < 50) {
+      bullets.push('The city added just ' + jcCurrent + 'K private sector jobs in the first seven months of 2025, down from 173K in the same period in 2022.');
+    }
+    bullets.push('The highest-paying sectors (Financial Activities at $52/hr, Information at $55/hr) are cutting jobs, while the only large-scale hiring sector (Education & Health) pays a median of $24/hr.');
+    var closing = 'The sectors that pay the most are cutting jobs. The only sector adding jobs at scale pays the least. This mismatch defines the labor market challenge for the next decade.';
+    return findingsPanel(headline, bullets, closing);
+  }
+  if (layer === 'fiscal') {
+    var maxGap = 0; var maxGapYear = '';
+    for (var i = 0; i < budgetGaps.without.length; i++) {
+      if (budgetGaps.without[i] > maxGap) { maxGap = budgetGaps.without[i]; maxGapYear = budgetGaps.labels[i]; }
+    }
+    var lastElv = elvSupply.accelerated[elvSupply.accelerated.length - 1];
+    var lastYear = elvSupply.labels[elvSupply.labels.length - 1];
+    var lastPit = pitLost.accelerated[pitLost.accelerated.length - 1];
+    var ombGrowth = Math.round((revProjections.omb[revProjections.omb.length-1] / revProjections.omb[0] - 1) * 100 / (revProjections.labels.length - 1) * 10) / 10;
+    var stagGrowth = Math.round((revProjections.stagnation[revProjections.stagnation.length-1] / revProjections.stagnation[0] - 1) * 100 / (revProjections.labels.length - 1) * 10) / 10;
+
+    var headline = 'The city faces a projected $' + maxGap + 'B budget gap in ' + maxGapYear + ' without a property tax increase.';
+    var bullets = [];
+    bullets.push('Under stagnation conditions, revenue grows at just ' + stagGrowth + '% annually versus ' + ombGrowth + '% in the OMB forecast \u2014 a divergence that compounds to billions within three years.');
+    bullets.push('By ' + lastYear + ', the city could be producing 93K graduates per year competing for as few as ' + lastElv + 'K entry-level positions under the accelerated displacement scenario.');
+    bullets.push('The cumulative fiscal cost of youth underemployment could reach $' + lastPit + 'M by ' + lastYear + ' in lost PIT revenue alone.');
+    var closing = 'The budget cannot be balanced through tax increases if the tax base itself is eroding. Investing in career-connected learning and employer partnerships is revenue protection, not discretionary spending.';
+    return findingsPanel(headline, bullets, closing);
+  }
+  if (layer === 'mobilitystat') {
+    var actionCount = 0; var watchCount = 0; var trackCount = 0; var pendingCount = 0; var totalMetrics = 0;
+    var actionAgencies = [];
+    for (var a = 0; a < agencies.length; a++) {
+      if (agencies[a].status === 'action') { actionCount++; actionAgencies.push(agencies[a].name); }
+      else if (agencies[a].status === 'watch') watchCount++;
+      else trackCount++;
+      for (var m = 0; m < agencies[a].metrics.length; m++) {
+        totalMetrics++;
+        if (agencies[a].metrics[m].pending) pendingCount++;
+      }
+    }
+    var headline = actionCount + ' of ' + agencies.length + ' agencies require immediate attention.';
+    var bullets = [];
+    if (actionAgencies.length > 0) {
+      bullets.push('Agencies flagged for action: ' + actionAgencies.join(', ') + '.');
+    }
+    if (pendingCount > totalMetrics / 2) {
+      bullets.push(pendingCount + ' of ' + totalMetrics + ' tracked metrics lack current data. The absence of data is itself a finding: the city cannot manage what it cannot measure.');
+    } else {
+      bullets.push(pendingCount + ' of ' + totalMetrics + ' metrics are still awaiting data submission.');
+    }
+    bullets.push(watchCount + ' agencies are on watch status. ' + trackCount + ' are currently on track.');
+    var closing = 'MobilitySTAT exists to ensure every metric has an owner and every flag has a response. The agencies above have been identified for escalation.';
+    return findingsPanel(headline, bullets, closing);
+  }
+  return '';
+}
+
+/* ── FUNNEL ───────────────────────────────────────────────────────────────── */
 
 function buildFunnelHTML() {
   var rows = '';
@@ -200,26 +392,69 @@ function buildFunnelHTML() {
   return '<div class="chart-section"><div class="chart-title">Education Pipeline \u2014 Cohort Funnel (per ~72,000 students entering 9th grade)</div>' + rows + '<div style="display:flex;gap:16px;margin-top:12px;"><span style="font-size:11px;color:' + C.green + ';">\u25A0 Healthy (&gt;75%)</span><span style="font-size:11px;color:' + C.amber + ';">\u25A0 Concerning (50\u201375%)</span><span style="font-size:11px;color:' + C.red + ';">\u25A0 Critical (&lt;50%)</span><span style="font-size:11px;color:' + C.dim + ';">\u25A0 Unknown</span></div><p class="source-cite">Source: NYC DOE InfoHub, CUNY IR Data Book, Center for an Urban Future (2026).</p></div>';
 }
 
-function buildAgencyCards(sorted, counts) {
-  var h = '<div style="display:flex;gap:12px;margin-bottom:20px;">';
-  var sts = [['action',C.red,'Action Required'],['watch',C.amber,'Watch'],['track',C.green,'On Track']];
-  for (var s = 0; s < sts.length; s++) {
-    h += '<div style="background:' + C.card + ';border:1px solid ' + C.border + ';padding:10px 16px;display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;background:' + sts[s][1] + ';display:inline-block;"></span><span style="font-size:12px;color:' + C.muted + ';">' + sts[s][2] + '</span><span style="font-size:18px;font-weight:700;color:' + sts[s][1] + ';">' + counts[sts[s][0]] + '</span></div>';
+/* ── AGENCY CARDS (with targets) ──────────────────────────────────────────── */
+
+function metricStatus(m) {
+  if (m.pending || m.numVal === undefined || m.numVal === null) return 'nodata';
+  if (m.target === null || m.target === undefined) return 'nodata';
+  var ratio = m.numVal / m.target;
+  if (m.lowerIsBetter) ratio = m.target / m.numVal;
+  if (ratio >= 1) return 'ontrack';
+  if (ratio >= 0.8) return 'watch';
+  return 'action';
+}
+
+function statusDot(st) {
+  var colors = { ontrack: C.green, watch: C.amber, action: C.red, nodata: C.dim };
+  return '<span class="status-dot" style="background:' + (colors[st] || C.dim) + ';"></span>';
+}
+
+function buildAgencyCards(sorted) {
+  var ontrack = 0, watch = 0, action = 0, nodata = 0;
+  for (var a = 0; a < sorted.length; a++) {
+    for (var mi = 0; mi < sorted[a].metrics.length; mi++) {
+      var st = metricStatus(sorted[a].metrics[mi]);
+      if (st === 'ontrack') ontrack++;
+      else if (st === 'watch') watch++;
+      else if (st === 'action') action++;
+      else nodata++;
+    }
   }
-  h += '</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;">';
+  var h = '<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">';
+  var sumItems = [
+    [C.green, 'On Track', ontrack],
+    [C.amber, 'Watch', watch],
+    [C.red, 'Action Required', action],
+    [C.dim, 'No Data', nodata]
+  ];
+  for (var s = 0; s < sumItems.length; s++) {
+    h += '<div style="background:' + C.card + ';border:1px solid ' + C.border + ';padding:10px 16px;display:flex;align-items:center;gap:8px;"><span class="status-dot" style="background:' + sumItems[s][0] + ';"></span><span style="font-size:12px;color:' + C.muted + ';">' + sumItems[s][1] + '</span><span style="font-size:18px;font-weight:700;color:' + sumItems[s][0] + ';">' + sumItems[s][2] + '</span></div>';
+  }
+  h += '</div><p style="font-size:11px;color:' + C.dim + ';margin:0 0 16px 0;font-style:italic;">Targets are proposed benchmarks. Status auto-calculated: \u2265100% of target = On Track, 80\u201399% = Watch, &lt;80% = Action Required.</p>';
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">';
   for (var a = 0; a < sorted.length; a++) {
     var ag = sorted[a];
     var sl = ag.status === 'action' ? 'ACTION REQUIRED' : ag.status === 'watch' ? 'WATCH' : 'ON TRACK';
-    h += '<div class="agency-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:700;color:' + C.text + ';">' + ag.name + '</div><div style="font-size:11px;color:' + C.muted + ';">' + ag.fullName + '</div></div><span class="status-badge status-' + ag.status + '">' + sl + '</span></div><p style="font-size:12px;color:' + C.dim + ';margin:0 0 12px;">' + ag.description + '</p><div style="border-top:1px solid ' + C.border + ';padding-top:12px;">';
+    h += '<div class="agency-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:700;color:' + C.text + ';">' + ag.name + '</div><div style="font-size:11px;color:' + C.muted + ';">' + ag.fullName + '</div></div><span class="status-badge status-' + ag.status + '">' + sl + '</span></div>';
+    h += '<p style="font-size:12px;color:' + C.dim + ';margin:0 0 12px;">' + ag.description + '</p><div style="border-top:1px solid ' + C.border + ';padding-top:12px;">';
     for (var mi = 0; mi < ag.metrics.length; mi++) {
       var m = ag.metrics[mi];
-      var mb = mi < ag.metrics.length - 1 ? 'margin-bottom:8px;' : '';
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;' + mb + '"><span style="font-size:12px;color:' + C.muted + ';">' + m.label + '</span>';
+      var mb = mi < ag.metrics.length - 1 ? 'margin-bottom:10px;' : '';
+      var st = metricStatus(m);
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;' + mb + '">';
+      h += '<span style="font-size:12px;color:' + C.muted + ';flex:1;">' + m.label + '</span>';
       if (m.pending) {
-        h += '<span class="data-pending" style="font-size:11px;color:' + C.dim + ';font-style:italic;">Data pending</span>';
+        h += '<span class="data-pending" style="font-size:11px;color:' + C.dim + ';font-style:italic;margin-right:8px;">Data pending</span>';
       } else {
-        h += '<span style="font-size:13px;font-weight:600;color:' + sentimentColor(m.sentiment) + ';display:flex;align-items:center;gap:4px;"><span>' + trendArrow(m.trend) + '</span>' + m.value + '</span>';
+        h += '<span style="font-size:13px;font-weight:600;color:' + sentimentColor(m.sentiment) + ';margin-right:8px;display:flex;align-items:center;gap:4px;"><span>' + trendArrow(m.trend) + '</span>' + m.value + '</span>';
       }
+      if (m.target !== null && m.target !== undefined) {
+        var tLabel = typeof m.target === 'number' && m.target > 1000 ? (m.target/1000).toFixed(0) + 'K' : m.target + (typeof m.target === 'number' && m.target <= 100 ? '%' : '');
+        h += '<span style="font-size:10px;color:' + C.dim + ';margin-right:6px;">Target: ' + tLabel + (m.targetYear ? ' by ' + m.targetYear : '') + '</span>';
+      } else {
+        h += '<span style="font-size:10px;color:' + C.dim + ';margin-right:6px;">Target: TBD</span>';
+      }
+      h += statusDot(st);
       h += '</div>';
     }
     h += '</div><div style="font-size:10px;color:' + C.dim + ';border-top:1px solid ' + C.border + ';padding-top:8px;margin-top:12px;">Owner: ' + ag.owner + '</div></div>';
@@ -227,19 +462,28 @@ function buildAgencyCards(sorted, counts) {
   return h + '</div>';
 }
 
+/* ── PAGE RENDERERS ───────────────────────────────────────────────────────── */
+
 function renderPeoplePipeline() {
   document.getElementById('content').innerHTML =
     sectionHeader('People & Pipeline', 'Education-to-workforce outcomes for NYC students') +
+    guidingQuestions('Are more New Yorkers completing the education pipeline than last year? Where are they falling out? Who is being left behind?') +
+    generateFindings('people') +
     metricCardsHTML(educationMetrics) + buildFunnelHTML() +
     chartBox('eduTrends', 'Education Trends 2016\u20132025', 'Source: NYC DOE Graduation Results, CUNY IR Data Book.',
       '<p style="font-size:11px;color:' + C.red + ';margin-top:8px;font-weight:600;">\u26A0 2025 HS Graduation Rate: largest drop in 20 years</p>');
   destroyCharts();
+  var hsBase = educationTrends.hsGrad[3]; // 2019 value
+  var ceBase = educationTrends.collegeEnroll[3];
+  var cuBase = educationTrends.cuny6yr[3];
   addChart(new Chart(document.getElementById('eduTrends'), {
     type:'line',
     data:{ labels:educationTrends.labels, datasets:[
       { label:'HS Graduation Rate', data:educationTrends.hsGrad, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3 },
       { label:'College Enrollment Rate', data:educationTrends.collegeEnroll, borderColor:C.amber, borderWidth:2, pointRadius:1, tension:0.3, spanGaps:false },
-      { label:"CUNY 6-yr Bachelor's Completion", data:educationTrends.cuny6yr, borderColor:C.green, borderWidth:2, pointRadius:1, tension:0.3 }
+      { label:"CUNY 6-yr Bachelor's Completion", data:educationTrends.cuny6yr, borderColor:C.green, borderWidth:2, pointRadius:1, tension:0.3 },
+      { label:'2019 HS Grad Baseline (' + hsBase + '%)', data:[null,null,null,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
+      { label:'2019 Enrollment Baseline (' + ceBase + '%)', data:[null,null,null,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase], borderColor:'rgba(255,255,255,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2.5, scales:{ y:{ min:30, max:100, ticks:{ callback:function(v){return v+'%';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'%';} } } } }
   }));
@@ -248,6 +492,8 @@ function renderPeoplePipeline() {
 function renderLaborMarket() {
   document.getElementById('content').innerHTML =
     sectionHeader('Labor Market & Sectors', 'Employment trends, sector performance, and job market health \u2014 Dec 2025') +
+    guidingQuestions('Which sectors are creating jobs? Are new jobs accessible to the workers who need them most? Is the entry-level on-ramp keeping pace with graduate supply?') +
+    generateFindings('labor') +
     metricCardsHTML(employmentMetrics) +
     chartBox('sectorChart', 'Employment Change by Sector \u2014 Over-the-Year', 'Source: NYS DOL, BLS QCEW.',
       '<p style="font-size:11px;color:' + C.amber + ';margin-top:8px;">\u26A0 After benchmark revisions, gains in Prof & Business Svcs and Information are expected to be revised away (NYC Comptroller, Feb 2026).</p>') +
@@ -257,27 +503,32 @@ function renderLaborMarket() {
   destroyCharts();
   addChart(new Chart(document.getElementById('sectorChart'), {
     type:'bar',
-    data:{ labels:sectorData.sectors, datasets:[{ data:sectorData.changes, backgroundColor:sectorData.changes.map(function(v){return v>=0?C.green:C.red;}), borderWidth:0 }] },
-    options:{ indexAxis:'y', responsive:true, aspectRatio:2, scales:{ x:{ ticks:{ callback:function(v){return (v>=0?'+':'')+Math.round(v/1000)+'K';} } } }, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(ctx){ var i=ctx.dataIndex; return (ctx.parsed.x>=0?'+':'')+ctx.parsed.x.toLocaleString()+' jobs \u00B7 $'+sectorData.wages[i]+'/hr median'; } } } } }
+    data:{ labels:sectorData.sectors, datasets:[{ label:'Job Change', data:sectorData.changes, backgroundColor:sectorData.changes.map(function(v){return v>=0?C.green:C.red;}), borderWidth:0 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:true, aspectRatio:2, scales:{ x:{ ticks:{ callback:function(v){return (v>=0?'+':'')+Math.round(v/1000)+'K';} } } }, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(ctx){ var i=ctx.dataIndex; return (ctx.parsed.x>=0?'+':'')+ctx.parsed.x.toLocaleString()+' jobs \u00B7 $'+sectorData.wages[i]+'/hr median'; } } } } }
   }));
   addChart(new Chart(document.getElementById('jobCreationChart'), {
     type:'bar',
-    data:{ labels:jobCreation.labels, datasets:[{ data:jobCreation.values, backgroundColor:['#7f1d1d','#b91c1c','#dc2626','#ef4444'], borderWidth:0 }] },
-    options:{ responsive:true, aspectRatio:1.8, scales:{ y:{ ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(ctx){return ctx.parsed.y+'K jobs';} } } } }
+    data:{ labels:jobCreation.labels, datasets:[
+      { label:'Jobs Added', data:jobCreation.values, backgroundColor:['#7f1d1d','#b91c1c','#dc2626','#ef4444'], borderWidth:0 }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.8, scales:{ y:{ ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(ctx){return ctx.parsed.y+'K jobs (2022 peak: 173K)';} } } } }
   }));
   addChart(new Chart(document.getElementById('entryLevelChart'), {
     type:'line',
     data:{ labels:entryLevel.labels, datasets:[
       { label:'Entry-Level Postings', data:entryLevel.values, borderColor:C.blue, borderWidth:2, pointRadius:3, tension:0.3 },
-      { label:'~93K Annual Grad Supply', data:[93,93,93,93,93,93], borderColor:C.muted, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false }
+      { label:'~93K Annual Grad Supply', data:[93,93,93,93,93,93], borderColor:C.muted, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false },
+      { label:'2022 Peak (72.5K)', data:[null,null,null,72.5,72.5,72.5], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
-    options:{ responsive:true, aspectRatio:1.8, scales:{ y:{ min:0, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.parsed.y+'K';} } } } }
+    options:{ responsive:true, aspectRatio:1.8, scales:{ y:{ min:0, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
   }));
 }
 
 function renderFiscalOutlook() {
   document.getElementById('content').innerHTML =
     sectionHeader('Fiscal & Economic Outlook', 'Tax revenues, budget gaps, and multi-year projections') +
+    guidingQuestions('Can the city\u2019s tax base sustain current spending levels? What happens to revenue if hiring trends and AI displacement continue? What is the fiscal cost of inaction?') +
+    generateFindings('fiscal') +
     metricCardsHTML(fiscalMetrics) +
     '<div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;">' +
     chartBox('taxDonut', 'FY2026 Tax Revenue by Source', 'Source: NYC OMB.') +
@@ -296,17 +547,18 @@ function renderFiscalOutlook() {
     data:{ labels:revProjections.labels, datasets:[
       { label:'OMB Forecast', data:revProjections.omb, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
       { label:'Comptroller Forecast', data:revProjections.comptroller, borderColor:C.green, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
-      { label:'Stagnation Scenario', data:revProjections.stagnation, borderColor:C.red, borderWidth:1.5, borderDash:[5,3], pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } }
+      { label:'Stagnation Scenario', data:revProjections.stagnation, borderColor:C.red, borderWidth:1.5, borderDash:[5,3], pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } },
+      { label:'FY2025 Baseline ($80.5B)', data:[80.5,80.5,80.5,80.5,80.5,80.5], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2, scales:{ y:{ min:75, max:105, ticks:{ callback:function(v){return '$'+v+'B';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'B';} } } } }
   }));
   addChart(new Chart(document.getElementById('budgetGapChart'), {
     type:'bar',
     data:{ labels:budgetGaps.labels, datasets:[
-      { label:'With Property Tax Increase', data:budgetGaps.withIncrease, backgroundColor:C.blue, borderWidth:0 },
-      { label:'Without Property Tax Increase', data:budgetGaps.without, backgroundColor:C.red, borderWidth:0 }
+      { label:'With Property Tax Increase', data:budgetGaps.withIncrease, backgroundColor:C.blue, borderWidth:0, barPercentage:0.8 },
+      { label:'Without Property Tax Increase', data:budgetGaps.without, backgroundColor:C.red, borderWidth:0, barPercentage:0.8 }
     ]},
-    options:{ responsive:true, aspectRatio:2.5, scales:{ y:{ ticks:{ callback:function(v){return '$'+v+'B';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'B';} } } } }
+    options:{ responsive:true, maintainAspectRatio:true, aspectRatio:2.5, scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){return '$'+v+'B';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'B';} } } } }
   }));
   addChart(new Chart(document.getElementById('elvSupplyChart'), {
     type:'line',
@@ -314,30 +566,33 @@ function renderFiscalOutlook() {
       { label:'Annual Graduate Supply', data:elvSupply.supply, borderColor:C.muted, borderWidth:1.5, borderDash:[6,3], pointRadius:0, fill:false },
       { label:'BLS Baseline', data:elvSupply.baseline, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
       { label:'Moderate Displacement', data:elvSupply.moderate, borderColor:C.amber, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
-      { label:'Accelerated Displacement', data:elvSupply.accelerated, borderColor:C.red, borderWidth:2, pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } }
+      { label:'Accelerated Displacement', data:elvSupply.accelerated, borderColor:C.red, borderWidth:2, pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } },
+      { label:'2022 Level (72.5K)', data:[72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5], borderColor:'rgba(255,255,255,0.2)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2.2, scales:{ y:{ min:20, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
   }));
   addChart(new Chart(document.getElementById('pitLostChart'), {
     type:'bar',
     data:{ labels:pitLost.labels, datasets:[
-      { label:'Moderate Scenario', data:pitLost.moderate, backgroundColor:C.blue, borderWidth:0 },
-      { label:'Accelerated Scenario', data:pitLost.accelerated, backgroundColor:C.red, borderWidth:0 }
+      { label:'Moderate Scenario', data:pitLost.moderate, backgroundColor:C.blue, borderWidth:0, barPercentage:0.8 },
+      { label:'Accelerated Scenario', data:pitLost.accelerated, backgroundColor:C.red, borderWidth:0, barPercentage:0.8 }
     ]},
-    options:{ responsive:true, aspectRatio:2.5, scales:{ y:{ ticks:{ callback:function(v){return '$'+v+'M';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'M';} } } } }
+    options:{ responsive:true, maintainAspectRatio:true, aspectRatio:2.5, scales:{ y:{ beginAtZero:true, ticks:{ callback:function(v){return '$'+v+'M';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'M';} } } } }
   }));
 }
 
 function renderMobilitySTAT() {
   var statusOrder = { action:0, watch:1, track:2 };
   var sorted = agencies.slice().sort(function(a,b){ return statusOrder[a.status]-statusOrder[b.status]; });
-  var counts = { action:0, watch:0, track:0 };
-  for (var i = 0; i < agencies.length; i++) counts[agencies[i].status]++;
   document.getElementById('content').innerHTML =
-    sectionHeader('MobilitySTAT', 'Agency accountability \u2014 owned metrics with trend indicators') +
-    buildAgencyCards(sorted, counts);
+    sectionHeader('MobilitySTAT', 'Agency accountability \u2014 owned metrics with trend indicators and proposed targets') +
+    guidingQuestions('Which agencies are meeting their targets? Where do metrics lack data entirely? What interventions have been triggered?') +
+    generateFindings('mobilitystat') +
+    buildAgencyCards(sorted);
   destroyCharts();
 }
+
+/* ── NAV + INIT ───────────────────────────────────────────────────────────── */
 
 var pages = [
   { id:'people', label:'People & Pipeline', layer:'01', render:renderPeoplePipeline },
