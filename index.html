@@ -14,39 +14,36 @@
     }
   </script>
   <style>
-    body { background: #0f172a; color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; }
+    body { background: #ffffff; color: #1a1a1a; font-family: 'Inter', sans-serif; margin: 0; }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #1e293b; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #f7f7f5; }
+    ::-webkit-scrollbar-thumb { background: #cccccc; border-radius: 3px; }
     .nav-btn { display: block; width: 100%; text-align: left; padding: 12px 16px; background: transparent; border: none; border-left: 3px solid transparent; cursor: pointer; }
-    .nav-btn:hover { background: rgba(30,41,59,0.5); }
-    .nav-btn.active { background: #1e293b; border-left-color: #3b82f6; }
-    .metric-card { background: #1e293b; border: 1px solid #334155; padding: 16px; transition: border-color 0.15s, background 0.15s; cursor: default; }
-    .metric-card:hover { border-color: #3b82f6; background: #243350; }
-    .chart-section { background: #1e293b; border: 1px solid #334155; padding: 20px; margin-bottom: 16px; }
-    .chart-title { font-size: 12px; font-weight: 600; color: #64748b; letter-spacing: 0.06em; margin-bottom: 16px; text-transform: uppercase; }
-    .source-cite { font-size: 11px; color: #475569; margin-top: 8px; }
-    .agency-card { background: #1e293b; border: 1px solid #334155; padding: 16px; transition: border-color 0.15s; }
-    .agency-card:hover { border-color: #475569; }
+    .nav-btn:hover { background: #eeeeeb; }
+    .nav-btn.active { background: #ffffff; border-left-color: #1a1a1a; }
+    .metric-card { background: #ffffff; border: 1px solid #e8e8e5; padding: 16px; transition: border-color 0.15s, background 0.15s; cursor: default; }
+    .metric-card:hover { border-color: #cccccc; background: #f7f7f5; }
+    .chart-section { background: #ffffff; border: 1px solid #e8e8e5; padding: 20px; margin-bottom: 16px; }
+    .chart-title { font-size: 12px; font-weight: 600; color: #888888; letter-spacing: 0.06em; margin-bottom: 16px; text-transform: uppercase; }
+    .source-cite { font-size: 11px; color: #aaaaaa; margin-top: 8px; }
+    .agency-card { background: #ffffff; border: 1px solid #e8e8e5; padding: 16px; transition: border-color 0.15s; }
+    .agency-card:hover { border-color: #cccccc; }
     .status-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; padding: 2px 8px; }
-    .status-action { color: #ef4444; background: rgba(239,68,68,0.1); border: 1px solid #ef4444; }
-    .status-watch { color: #f59e0b; background: rgba(245,158,11,0.1); border: 1px solid #f59e0b; }
-    .status-track { color: #10b981; background: rgba(16,185,129,0.1); border: 1px solid #10b981; }
-    .funnel-bar-bg { height: 20px; background: #334155; position: relative; }
+    .status-action { color: #dc2626; background: rgba(220,38,38,0.08); border: 1px solid #dc2626; }
+    .status-watch { color: #d97706; background: rgba(217,119,6,0.08); border: 1px solid #d97706; }
+    .status-track { color: #059669; background: rgba(5,150,105,0.08); border: 1px solid #059669; }
+    .funnel-bar-bg { height: 20px; background: #e8e8e5; position: relative; }
     .funnel-bar-fill { height: 100%; transition: width 0.5s ease; }
     .data-pending { animation: pendingPulse 2s ease-in-out infinite; }
-    @keyframes pendingPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+    @keyframes pendingPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
     #content { transition: opacity 0.15s ease; }
-    .findings-panel { background: #1a2744; border-left: 3px solid #3b82f6; padding: 16px 20px; margin-bottom: 16px; border-radius: 0 4px 4px 0; }
+    .findings-panel { background: #f7f7f5; border-left: 3px solid #1a1a1a; padding: 16px 20px; margin-bottom: 16px; border-radius: 0 4px 4px 0; }
     .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #sidebar { display: none !important; }
       #content { padding: 12px !important; }
       .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
-      .metric-card div, .agency-card div, .agency-card p, .agency-card span, .chart-title, .source-cite, h2, h2+p, .findings-panel div, .findings-panel p { color: #000 !important; }
-      .status-badge { border-color: #666 !important; color: #000 !important; background: #eee !important; }
-      .funnel-bar-bg { background: #ddd !important; }
       .nav-btn { display: none !important; }
     }
     @media (max-width: 900px) {
@@ -56,47 +53,48 @@
 </head>
 <body>
   <div id="app" style="display:flex; height:100vh; overflow:hidden;">
-    <div id="sidebar" style="width:220px; background:#0b1628; border-right:1px solid #334155; display:flex; flex-direction:column; flex-shrink:0;">
-      <div style="padding:20px 16px; border-bottom:1px solid #334155;">
-        <div style="font-size:11px; font-weight:700; color:#3b82f6; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Office of the</div>
-        <div style="font-size:11px; font-weight:700; color:#3b82f6; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Deputy Mayor</div>
-        <div style="font-size:10px; color:#475569; letter-spacing:0.06em;">Economic Mobility</div>
+    <div id="sidebar" style="width:220px; background:#f7f7f5; border-right:1px solid #e8e8e5; display:flex; flex-direction:column; flex-shrink:0;">
+      <div style="padding:20px 16px; border-bottom:1px solid #e8e8e5;">
+        <div style="font-size:11px; font-weight:600; color:#1a1a1a; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:4px;">Office of the</div>
+        <div style="font-size:11px; font-weight:600; color:#1a1a1a; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:8px;">Deputy Mayor</div>
+        <div style="font-size:10px; color:#aaaaaa; letter-spacing:0.06em;">Economic Mobility</div>
       </div>
       <nav id="nav" style="flex:1; padding:12px 0;"></nav>
-      <div style="padding:16px; border-top:1px solid #334155;">
-        <div style="font-size:10px; color:#475569;">Last updated</div>
-        <div id="lastUpdated" style="font-size:11px; color:#64748b; font-weight:500;">March 2026</div>
+      <div style="padding:16px; border-top:1px solid #e8e8e5;">
+        <div style="font-size:10px; color:#aaaaaa;">Last updated</div>
+        <div id="lastUpdated" style="font-size:11px; color:#888888; font-weight:500;">March 2026</div>
       </div>
     </div>
     <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-      <div style="background:#0b1628; border-bottom:1px solid #334155; padding:14px 24px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
-        <span style="font-size:14px; font-weight:700; color:#f1f5f9; letter-spacing:0.04em;">NYC ECONOMIC MOBILITY DASHBOARD</span>
+      <div style="background:#ffffff; border-bottom:1px solid #e8e8e5; padding:14px 24px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
+        <span style="font-size:14px; font-weight:600; color:#1a1a1a; letter-spacing:0.04em;">NYC ECONOMIC MOBILITY DASHBOARD</span>
         <div style="display:flex; gap:16px; align-items:center;">
-          <span style="font-size:11px; color:#475569;">v2.0 &middot; Internal Use Only</span>
-          <span id="dataPeriod" style="font-size:11px; color:#64748b; background:#1e293b; padding:3px 10px; border:1px solid #334155;">DEC 2025 DATA</span>
+          <span style="font-size:11px; color:#aaaaaa;">v2.0 &middot; Internal Use Only</span>
+          <span id="dataPeriod" style="font-size:11px; color:#888888; background:#f7f7f5; padding:3px 10px; border:1px solid #e8e8e5;">DEC 2025 DATA</span>
         </div>
       </div>
-      <div id="content" style="flex:1; overflow-y:auto; padding:24px;"></div>
+      <div id="content" style="flex:1; overflow-y:auto; padding:24px; background:#fafafa;"></div>
     </div>
   </div>
 
 <script>
 var LAST_UPDATED = 'March 2026';
 var DATA_PERIOD = 'DEC 2025 DATA';
-var C = { bg:'#0f172a', card:'#1e293b', border:'#334155', text:'#f1f5f9', muted:'#64748b', dim:'#475569', blue:'#3b82f6', green:'#10b981', red:'#ef4444', amber:'#f59e0b', indigo:'#6366f1', purple:'#a855f7', cyan:'#06b6d4', light:'#94a3b8' };
-Chart.defaults.color = C.muted;
-Chart.defaults.borderColor = '#1e293b';
+var C = { bg:'#ffffff', card:'#ffffff', border:'#e8e8e5', text:'#1a1a1a', body:'#333333', muted:'#888888', dim:'#aaaaaa', blue:'#2563eb', green:'#059669', red:'#dc2626', amber:'#d97706', indigo:'#4f46e5', purple:'#7c3aed', cyan:'#0891b2', light:'#888888', offwhite:'#f7f7f5' };
+Chart.defaults.color = 'rgba(0,0,0,0.5)';
+Chart.defaults.borderColor = 'rgba(0,0,0,0.06)';
 Chart.defaults.font.family = 'Inter, sans-serif';
 Chart.defaults.font.size = 11;
 Chart.defaults.plugins.legend.labels.boxWidth = 12;
 Chart.defaults.plugins.legend.labels.padding = 16;
-Chart.defaults.plugins.tooltip.backgroundColor = C.card;
-Chart.defaults.plugins.tooltip.borderColor = C.border;
-Chart.defaults.plugins.tooltip.borderWidth = 1;
-Chart.defaults.plugins.tooltip.titleColor = C.muted;
-Chart.defaults.plugins.tooltip.bodyColor = C.text;
+Chart.defaults.plugins.legend.labels.color = '#333333';
+Chart.defaults.plugins.tooltip.backgroundColor = '#1a1a1a';
+Chart.defaults.plugins.tooltip.borderColor = '#1a1a1a';
+Chart.defaults.plugins.tooltip.borderWidth = 0;
+Chart.defaults.plugins.tooltip.titleColor = '#999999';
+Chart.defaults.plugins.tooltip.bodyColor = '#ffffff';
 Chart.defaults.plugins.tooltip.padding = 10;
-Chart.defaults.scale.grid.color = 'rgba(30,41,59,0.8)';
+Chart.defaults.scale.grid.color = 'rgba(0,0,0,0.06)';
 
 /* ── DATA ─────────────────────────────────────────────────────────────────── */
 
@@ -203,7 +201,7 @@ var agencies = [
 
 function sentimentColor(s) { return s==='positive'?C.green:s==='negative'?C.red:s==='warning'?C.amber:C.muted; }
 function trendArrow(t) { return t==='up'?'\u2191':t==='down'?'\u2193':'\u2192'; }
-function funnelColor(p) { return p===null?C.dim:p>=75?C.green:p>=50?C.amber:C.red; }
+function funnelColor(p) { return p===null?'#cccccc':p>=75?C.green:p>=50?C.amber:C.red; }
 
 function buildSparkline(data) {
   if (!data || data.length < 3) return '';
@@ -214,7 +212,7 @@ function buildSparkline(data) {
   var h = '<div style="display:flex;align-items:flex-end;gap:2px;height:20px;margin-top:6px;">';
   for (var i = 0; i < data.length; i++) {
     var ht = Math.max(3, Math.round(((data[i] - min) / range) * 18));
-    var opacity = i === data.length - 1 ? '1' : '0.5';
+    var opacity = i === data.length - 1 ? '1' : '0.4';
     h += '<div style="width:6px;background:' + color + ';height:' + ht + 'px;border-radius:1px;opacity:' + opacity + ';"></div>';
   }
   return h + '</div>';
@@ -234,7 +232,7 @@ function metricCardsHTML(metrics) {
     }
     h += '</div>';
     if (m.disagg) {
-      h += '<div style="border-top:1px solid ' + C.border + ';margin-top:8px;padding-top:6px;font-size:11px;color:' + C.light + ';">' + m.disagg + '</div>';
+      h += '<div style="border-top:1px solid ' + C.border + ';margin-top:8px;padding-top:6px;font-size:11px;color:' + C.muted + ';">' + m.disagg + '</div>';
     }
     h += '</div>';
   }
@@ -243,11 +241,11 @@ function metricCardsHTML(metrics) {
 
 function sectionHeader(title, subtitle) {
   var sub = subtitle ? '<p style="font-size:12px;color:' + C.muted + ';margin:4px 0 0;">' + subtitle + '</p>' : '';
-  return '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid ' + C.border + ';"><h2 style="font-size:18px;font-weight:700;color:' + C.text + ';margin:0;">' + title + '</h2>' + sub + '</div>';
+  return '<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid ' + C.border + ';"><h2 style="font-size:18px;font-weight:600;color:' + C.text + ';margin:0;">' + title + '</h2>' + sub + '</div>';
 }
 
 function guidingQuestions(text) {
-  return '<p style="font-size:12px;font-style:italic;color:' + C.light + ';margin:0 0 16px 0;line-height:1.5;">' + text + '</p>';
+  return '<p style="font-size:12px;font-style:italic;color:' + C.muted + ';margin:0 0 16px 0;line-height:1.5;">' + text + '</p>';
 }
 
 function chartBox(id, title, source, extra) {
@@ -263,9 +261,9 @@ function addChart(c) { activeCharts.push(c); return c; }
 
 function findingsPanel(headline, bullets, closing) {
   var h = '<div class="findings-panel">';
-  h += '<div style="font-size:14px;font-weight:700;color:' + C.text + ';margin-bottom:10px;">' + headline + '</div>';
+  h += '<div style="font-size:14px;font-weight:600;color:' + C.text + ';margin-bottom:10px;">' + headline + '</div>';
   for (var i = 0; i < bullets.length; i++) {
-    h += '<p style="font-size:12px;color:' + C.light + ';margin:0 0 6px 0;line-height:1.5;">\u2022 ' + bullets[i] + '</p>';
+    h += '<p style="font-size:12px;color:' + C.body + ';margin:0 0 6px 0;line-height:1.5;">\u2022 ' + bullets[i] + '</p>';
   }
   h += '<p style="font-size:12px;font-style:italic;color:' + C.muted + ';margin:8px 0 0 0;line-height:1.5;">' + closing + '</p>';
   return h + '</div>';
@@ -315,7 +313,6 @@ function generateFindings(layer) {
     var elDecline = Math.round((1 - elCurrent / elPeak) * 1000) / 10;
     var gradsPerPosting = Math.round(93 / elCurrent * 10) / 10;
     var jcCurrent = jobCreation.values[jobCreation.values.length - 1];
-
     var headline = topPct > 80
       ? 'Job creation in NYC is running on a single engine: ' + topSector + ' accounted for ' + topPct + '% of all jobs added.'
       : 'The labor market added ' + totalGain.toLocaleString() + ' jobs but lost ' + Math.abs(totalLoss).toLocaleString() + ' across other sectors.';
@@ -338,7 +335,6 @@ function generateFindings(layer) {
     var lastPit = pitLost.accelerated[pitLost.accelerated.length - 1];
     var ombGrowth = Math.round((revProjections.omb[revProjections.omb.length-1] / revProjections.omb[0] - 1) * 100 / (revProjections.labels.length - 1) * 10) / 10;
     var stagGrowth = Math.round((revProjections.stagnation[revProjections.stagnation.length-1] / revProjections.stagnation[0] - 1) * 100 / (revProjections.labels.length - 1) * 10) / 10;
-
     var headline = 'The city faces a projected $' + maxGap + 'B budget gap in ' + maxGapYear + ' without a property tax increase.';
     var bullets = [];
     bullets.push('Under stagnation conditions, revenue grows at just ' + stagGrowth + '% annually versus ' + ombGrowth + '% in the OMB forecast \u2014 a divergence that compounds to billions within three years.');
@@ -389,7 +385,7 @@ function buildFunnelHTML() {
     var bo = s.pct !== null ? 1 : 0.3;
     rows += '<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:' + C.muted + ';">' + s.stage + '</span><span style="font-size:12px;font-weight:600;color:' + vc + ';">' + vt + '</span></div><div class="funnel-bar-bg"><div class="funnel-bar-fill" style="width:' + bw + '%;background:' + bc + ';opacity:' + bo + ';"></div></div></div>';
   }
-  return '<div class="chart-section"><div class="chart-title">Education Pipeline \u2014 Cohort Funnel (per ~72,000 students entering 9th grade)</div>' + rows + '<div style="display:flex;gap:16px;margin-top:12px;"><span style="font-size:11px;color:' + C.green + ';">\u25A0 Healthy (&gt;75%)</span><span style="font-size:11px;color:' + C.amber + ';">\u25A0 Concerning (50\u201375%)</span><span style="font-size:11px;color:' + C.red + ';">\u25A0 Critical (&lt;50%)</span><span style="font-size:11px;color:' + C.dim + ';">\u25A0 Unknown</span></div><p class="source-cite">Source: NYC DOE InfoHub, CUNY IR Data Book, Center for an Urban Future (2026).</p></div>';
+  return '<div class="chart-section"><div class="chart-title">Education Pipeline \u2014 Cohort Funnel (per ~72,000 students entering 9th grade)</div>' + rows + '<div style="display:flex;gap:16px;margin-top:12px;"><span style="font-size:11px;color:' + C.green + ';">\u25A0 Healthy (&gt;75%)</span><span style="font-size:11px;color:' + C.amber + ';">\u25A0 Concerning (50\u201375%)</span><span style="font-size:11px;color:' + C.red + ';">\u25A0 Critical (&lt;50%)</span><span style="font-size:11px;color:#cccccc;">\u25A0 Unknown</span></div><p class="source-cite">Source: NYC DOE InfoHub, CUNY IR Data Book, Center for an Urban Future (2026).</p></div>';
 }
 
 /* ── AGENCY CARDS (with targets) ──────────────────────────────────────────── */
@@ -405,8 +401,8 @@ function metricStatus(m) {
 }
 
 function statusDot(st) {
-  var colors = { ontrack: C.green, watch: C.amber, action: C.red, nodata: C.dim };
-  return '<span class="status-dot" style="background:' + (colors[st] || C.dim) + ';"></span>';
+  var colors = { ontrack: C.green, watch: C.amber, action: C.red, nodata: '#cccccc' };
+  return '<span class="status-dot" style="background:' + (colors[st] || '#cccccc') + ';"></span>';
 }
 
 function buildAgencyCards(sorted) {
@@ -425,7 +421,7 @@ function buildAgencyCards(sorted) {
     [C.green, 'On Track', ontrack],
     [C.amber, 'Watch', watch],
     [C.red, 'Action Required', action],
-    [C.dim, 'No Data', nodata]
+    ['#cccccc', 'No Data', nodata]
   ];
   for (var s = 0; s < sumItems.length; s++) {
     h += '<div style="background:' + C.card + ';border:1px solid ' + C.border + ';padding:10px 16px;display:flex;align-items:center;gap:8px;"><span class="status-dot" style="background:' + sumItems[s][0] + ';"></span><span style="font-size:12px;color:' + C.muted + ';">' + sumItems[s][1] + '</span><span style="font-size:18px;font-weight:700;color:' + sumItems[s][0] + ';">' + sumItems[s][2] + '</span></div>';
@@ -435,14 +431,14 @@ function buildAgencyCards(sorted) {
   for (var a = 0; a < sorted.length; a++) {
     var ag = sorted[a];
     var sl = ag.status === 'action' ? 'ACTION REQUIRED' : ag.status === 'watch' ? 'WATCH' : 'ON TRACK';
-    h += '<div class="agency-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:700;color:' + C.text + ';">' + ag.name + '</div><div style="font-size:11px;color:' + C.muted + ';">' + ag.fullName + '</div></div><span class="status-badge status-' + ag.status + '">' + sl + '</span></div>';
-    h += '<p style="font-size:12px;color:' + C.dim + ';margin:0 0 12px;">' + ag.description + '</p><div style="border-top:1px solid ' + C.border + ';padding-top:12px;">';
+    h += '<div class="agency-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><div style="font-size:16px;font-weight:600;color:' + C.text + ';">' + ag.name + '</div><div style="font-size:11px;color:' + C.muted + ';">' + ag.fullName + '</div></div><span class="status-badge status-' + ag.status + '">' + sl + '</span></div>';
+    h += '<p style="font-size:12px;color:' + C.body + ';margin:0 0 12px;">' + ag.description + '</p><div style="border-top:1px solid ' + C.border + ';padding-top:12px;">';
     for (var mi = 0; mi < ag.metrics.length; mi++) {
       var m = ag.metrics[mi];
       var mb = mi < ag.metrics.length - 1 ? 'margin-bottom:10px;' : '';
       var st = metricStatus(m);
       h += '<div style="display:flex;justify-content:space-between;align-items:center;' + mb + '">';
-      h += '<span style="font-size:12px;color:' + C.muted + ';flex:1;">' + m.label + '</span>';
+      h += '<span style="font-size:12px;color:' + C.body + ';flex:1;">' + m.label + '</span>';
       if (m.pending) {
         h += '<span class="data-pending" style="font-size:11px;color:' + C.dim + ';font-style:italic;margin-right:8px;">Data pending</span>';
       } else {
@@ -473,17 +469,16 @@ function renderPeoplePipeline() {
     chartBox('eduTrends', 'Education Trends 2016\u20132025', 'Source: NYC DOE Graduation Results, CUNY IR Data Book.',
       '<p style="font-size:11px;color:' + C.red + ';margin-top:8px;font-weight:600;">\u26A0 2025 HS Graduation Rate: largest drop in 20 years</p>');
   destroyCharts();
-  var hsBase = educationTrends.hsGrad[3]; // 2019 value
+  var hsBase = educationTrends.hsGrad[3];
   var ceBase = educationTrends.collegeEnroll[3];
-  var cuBase = educationTrends.cuny6yr[3];
   addChart(new Chart(document.getElementById('eduTrends'), {
     type:'line',
     data:{ labels:educationTrends.labels, datasets:[
       { label:'HS Graduation Rate', data:educationTrends.hsGrad, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3 },
       { label:'College Enrollment Rate', data:educationTrends.collegeEnroll, borderColor:C.amber, borderWidth:2, pointRadius:1, tension:0.3, spanGaps:false },
       { label:"CUNY 6-yr Bachelor's Completion", data:educationTrends.cuny6yr, borderColor:C.green, borderWidth:2, pointRadius:1, tension:0.3 },
-      { label:'2019 HS Grad Baseline (' + hsBase + '%)', data:[null,null,null,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
-      { label:'2019 Enrollment Baseline (' + ceBase + '%)', data:[null,null,null,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase], borderColor:'rgba(255,255,255,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+      { label:'2019 HS Grad Baseline (' + hsBase + '%)', data:[null,null,null,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase], borderColor:'rgba(0,0,0,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
+      { label:'2019 Enrollment Baseline (' + ceBase + '%)', data:[null,null,null,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase], borderColor:'rgba(0,0,0,0.10)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2.5, scales:{ y:{ min:30, max:100, ticks:{ callback:function(v){return v+'%';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'%';} } } } }
   }));
@@ -509,7 +504,7 @@ function renderLaborMarket() {
   addChart(new Chart(document.getElementById('jobCreationChart'), {
     type:'bar',
     data:{ labels:jobCreation.labels, datasets:[
-      { label:'Jobs Added', data:jobCreation.values, backgroundColor:['#7f1d1d','#b91c1c','#dc2626','#ef4444'], borderWidth:0 }
+      { label:'Jobs Added', data:jobCreation.values, backgroundColor:['#991b1b','#b91c1c','#dc2626','#ef4444'], borderWidth:0 }
     ]},
     options:{ responsive:true, maintainAspectRatio:true, aspectRatio:1.8, scales:{ y:{ ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:function(ctx){return ctx.parsed.y+'K jobs (2022 peak: 173K)';} } } } }
   }));
@@ -518,7 +513,7 @@ function renderLaborMarket() {
     data:{ labels:entryLevel.labels, datasets:[
       { label:'Entry-Level Postings', data:entryLevel.values, borderColor:C.blue, borderWidth:2, pointRadius:3, tension:0.3 },
       { label:'~93K Annual Grad Supply', data:[93,93,93,93,93,93], borderColor:C.muted, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false },
-      { label:'2022 Peak (72.5K)', data:[null,null,null,72.5,72.5,72.5], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+      { label:'2022 Peak (72.5K)', data:[null,null,null,72.5,72.5,72.5], borderColor:'rgba(0,0,0,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:1.8, scales:{ y:{ min:0, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
   }));
@@ -539,7 +534,7 @@ function renderFiscalOutlook() {
   destroyCharts();
   addChart(new Chart(document.getElementById('taxDonut'), {
     type:'doughnut',
-    data:{ labels:taxSources.labels, datasets:[{ data:taxSources.amounts, backgroundColor:[C.blue,C.cyan,C.indigo,C.purple,C.amber], borderWidth:0 }] },
+    data:{ labels:taxSources.labels, datasets:[{ data:taxSources.amounts, backgroundColor:[C.blue,C.cyan,C.indigo,C.purple,C.amber], borderWidth:2, borderColor:'#ffffff' }] },
     options:{ responsive:true, cutout:'55%', plugins:{ legend:{ position:'bottom', labels:{padding:10} }, tooltip:{ callbacks:{ label:function(ctx){return ' $'+ctx.parsed+'B ('+taxSources.shares[ctx.dataIndex]+'%)';} } } } }
   }));
   addChart(new Chart(document.getElementById('revProjections'), {
@@ -547,8 +542,8 @@ function renderFiscalOutlook() {
     data:{ labels:revProjections.labels, datasets:[
       { label:'OMB Forecast', data:revProjections.omb, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
       { label:'Comptroller Forecast', data:revProjections.comptroller, borderColor:C.green, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
-      { label:'Stagnation Scenario', data:revProjections.stagnation, borderColor:C.red, borderWidth:1.5, borderDash:[5,3], pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } },
-      { label:'FY2025 Baseline ($80.5B)', data:[80.5,80.5,80.5,80.5,80.5,80.5], borderColor:'rgba(255,255,255,0.25)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+      { label:'Stagnation Scenario', data:revProjections.stagnation, borderColor:C.red, borderWidth:1.5, borderDash:[5,3], pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(220,38,38,0.06)' } },
+      { label:'FY2025 Baseline ($80.5B)', data:[80.5,80.5,80.5,80.5,80.5,80.5], borderColor:'rgba(0,0,0,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2, scales:{ y:{ min:75, max:105, ticks:{ callback:function(v){return '$'+v+'B';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': $'+ctx.parsed.y+'B';} } } } }
   }));
@@ -566,8 +561,8 @@ function renderFiscalOutlook() {
       { label:'Annual Graduate Supply', data:elvSupply.supply, borderColor:C.muted, borderWidth:1.5, borderDash:[6,3], pointRadius:0, fill:false },
       { label:'BLS Baseline', data:elvSupply.baseline, borderColor:C.blue, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
       { label:'Moderate Displacement', data:elvSupply.moderate, borderColor:C.amber, borderWidth:2, pointRadius:1, tension:0.3, fill:false },
-      { label:'Accelerated Displacement', data:elvSupply.accelerated, borderColor:C.red, borderWidth:2, pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(239,68,68,0.06)' } },
-      { label:'2022 Level (72.5K)', data:[72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5], borderColor:'rgba(255,255,255,0.2)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+      { label:'Accelerated Displacement', data:elvSupply.accelerated, borderColor:C.red, borderWidth:2, pointRadius:1, tension:0.3, fill:{ target:0, above:'rgba(220,38,38,0.06)' } },
+      { label:'2022 Level (72.5K)', data:[72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5], borderColor:'rgba(0,0,0,0.12)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
     options:{ responsive:true, aspectRatio:2.2, scales:{ y:{ min:20, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
   }));
@@ -607,8 +602,8 @@ function renderNav() {
   for (var i = 0; i < pages.length; i++) {
     var p = pages[i], act = p.id === activePage;
     h += '<button class="nav-btn' + (act?' active':'') + '" onclick="switchPage(\'' + p.id + '\')">' +
-      '<div style="font-size:10px;color:' + (act?C.blue:C.dim) + ';letter-spacing:0.08em;margin-bottom:3px;">LAYER ' + p.layer + '</div>' +
-      '<div style="font-size:13px;color:' + (act?C.text:C.muted) + ';font-weight:' + (act?600:400) + ';">' + p.label + '</div></button>';
+      '<div style="font-size:10px;color:' + (act?C.text:C.dim) + ';letter-spacing:0.08em;margin-bottom:3px;">LAYER ' + p.layer + '</div>' +
+      '<div style="font-size:13px;color:' + (act?C.text:'#666666') + ';font-weight:' + (act?600:400) + ';">' + p.label + '</div></button>';
   }
   document.getElementById('nav').innerHTML = h;
 }
@@ -634,7 +629,7 @@ document.addEventListener('keydown', function(e) {
   else if (key === '4') switchPage('mobilitystat');
 });
 try { renderNav(); renderPeoplePipeline(); } catch(e) {
-  document.getElementById('content').innerHTML = '<pre style="color:#ef4444;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>';
+  document.getElementById('content').innerHTML = '<pre style="color:#dc2626;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>';
 }
 </script>
 </body>
