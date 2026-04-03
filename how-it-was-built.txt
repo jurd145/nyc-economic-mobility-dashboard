@@ -1,0 +1,201 @@
+HOW THE NYC ECONOMIC MOBILITY DASHBOARD WAS BUILT
+===================================================
+
+CONTEXT
+-------
+This dashboard was built for the Office of the Deputy Mayor for Economic Mobility
+as an internal tool to track education, workforce, and economic development outcomes
+for New York City. It is a static data dashboard (no backend, no authentication)
+designed to be updated monthly/quarterly with new data.
+
+The build was done entirely by Claude Code (claude.ai/code) in a single session,
+working in a local directory on macOS.
+
+
+CONSTRAINTS ENCOUNTERED
+-----------------------
+1. DISK SPACE: The machine had only 138MB free (99% full). A standard Vite + React
+   + Recharts + Tailwind project requires ~400MB of node_modules. This ruled out
+   npm-based tooling entirely.
+
+2. NODE.JS: The installed Node.js binary was x86_64 on an arm64 Mac, so it wouldn't
+   execute. The only working Node binary was bundled inside Cursor.app, used solely
+   for syntax validation during development.
+
+3. RECHARTS CDN FAILURE: The initial approach used React + Recharts + Babel loaded
+   from CDN (unpkg). React and Babel loaded fine, but Recharts' UMD build
+   (recharts@2.12.7/umd/Recharts.js) returned `undefined` when loaded -- its UMD
+   bundle doesn't work reliably as a standalone CDN script.
+
+4. NESTED TEMPLATE LITERALS: After switching to Chart.js, the dashboard rendered
+   only the shell (header + sidebar) but no content. The root cause was JavaScript
+   syntax errors from nested template literals (backtick strings inside backtick
+   strings), which browsers reject as invalid syntax. The entire script block was
+   rewritten using pure string concatenation with no template literals.
+
+
+SOLUTION: SINGLE-FILE ARCHITECTURE
+-----------------------------------
+The final dashboard is a single index.html file (~530 lines) that loads three
+external resources from CDN:
+
+  - Tailwind CSS (cdn.tailwindcss.com) -- utility-first styling
+  - Chart.js 4.4.4 (cdn.jsdelivr.net) -- all charts (line, bar, doughnut)
+  - Inter font (Google Fonts) -- typography
+
+No React. No JSX. No Babel. No build step. No npm. Just vanilla JavaScript
+with string-concatenation-based DOM rendering and Chart.js for visualization.
+
+The file opens directly in any browser. For development, a Python HTTP server
+was used (python3 -m http.server 8080) since some CDN scripts behave better
+over HTTP than file://.
+
+
+FILE STRUCTURE
+--------------
+nyc-dashboard/
+  index.html          -- The entire dashboard (single file, self-contained)
+  CLAUDE.md           -- Guide for future Claude Code sessions
+  .gitignore
+  src/data/
+    education.js      -- Reference data files (not imported by index.html,
+    employment.js        kept in sync for future Vite migration)
+    fiscal.js
+    agencies.js
+
+
+DASHBOARD STRUCTURE
+-------------------
+The dashboard has four layers, navigated via a sidebar:
+
+LAYER 01 - PEOPLE & PIPELINE (default view)
+  - 10 metric cards (HS grad rate, college enrollment, CUNY completion, etc.)
+  - Education pipeline funnel (HTML/CSS bar chart, color-coded by health)
+  - Education trends line chart (3 series, 2016-2025)
+
+LAYER 02 - LABOR MARKET & SECTORS
+  - 6 metric cards (private sector jobs, job openings, etc.)
+  - Horizontal bar chart: employment change by sector with median wages
+  - Bar chart: Jan-Jul job creation by year (red intensity gradient)
+  - Line chart: entry-level postings with graduate supply reference line
+
+LAYER 03 - FISCAL & ECONOMIC OUTLOOK
+  - 7 metric cards (tax revenue, budget gaps, office vacancy)
+  - Doughnut chart: tax revenue by source
+  - Line chart: 3-scenario revenue projections (OMB/Comptroller/Stagnation)
+  - Grouped bar chart: budget gaps with/without property tax increase
+  - Line chart: entry-level jobs vs graduate supply (4 series, 2022-2031)
+  - Grouped bar chart: cumulative PIT revenue lost
+
+LAYER 04 - MOBILITYSTAT
+  - Status summary (Action Required / Watch / On Track counts)
+  - 7 agency cards (DOE, CUNY, SBS, NYCEDC, DYCD, HRA, NYC Talent)
+  - Each card shows owned metrics with trend arrows or "Data pending"
+
+
+DESIGN SYSTEM
+-------------
+Dark professional theme inspired by Bloomberg Terminal / government briefing:
+
+  Background:    #0f172a (dark navy)
+  Card bg:       #1e293b (dark slate)
+  Card border:   #334155
+  Text primary:  #f1f5f9 (near white)
+  Text muted:    #64748b (gray)
+  Blue accent:   #3b82f6 (primary metrics)
+  Green:         #10b981 (positive trends)
+  Red:           #ef4444 (negative trends, warnings)
+  Amber:         #f59e0b (caution/moderate)
+  Font:          Inter (Google Fonts)
+
+Metric cards: small uppercase label, large bold value, colored delta/context line
+with trend arrow (unicode arrows). No decorative elements, no gradients.
+
+
+CODE ARCHITECTURE
+-----------------
+The JavaScript in index.html follows this structure:
+
+1. Color constants (var C = {...})
+2. Chart.js global defaults (tooltip style, grid color, font)
+3. All data as plain JS objects/arrays (easy to find and update)
+4. Helper functions:
+   - sentimentColor(s) -- returns hex color for positive/negative/warning/neutral
+   - trendArrow(t) -- returns unicode arrow for up/down/flat
+   - metricCardsHTML(metrics) -- generates grid of metric cards
+   - sectionHeader(title, subtitle) -- page section header
+   - chartBox(id, title, source, extra) -- chart container with canvas
+   - buildFunnelHTML() -- education pipeline funnel bars
+   - buildAgencyCards(sorted, counts) -- MobilitySTAT agency cards
+5. Page render functions:
+   - renderPeoplePipeline() -- sets innerHTML + creates Chart.js instances
+   - renderLaborMarket()
+   - renderFiscalOutlook()
+   - renderMobilitySTAT()
+6. Navigation (renderNav, switchPage)
+7. Init (try/catch with error display)
+
+Chart instances are tracked in activeCharts[] and destroyed on page switch
+to prevent memory leaks.
+
+All HTML is built via string concatenation (no template literals) to avoid
+nested-backtick syntax errors that broke earlier versions.
+
+
+DATA SOURCES
+------------
+All data is hardcoded from these sources:
+  - NYC Comptroller (budget analysis, JOLTS, PIT reports)
+  - Center for an Urban Future ("From Degree to Career", March 2026)
+  - BLS (Employment Projections 2024-2034, JOLTS state data)
+  - NYC DOE (Graduation results via InfoHub)
+  - CUNY (Institutional Research Data Book, ASAP/ACE program data)
+  - NYCEDC (State of the NYC Economy, monthly Economic Snapshot)
+  - NY State DOL (Labor Statistics for NYC Region)
+
+
+HOW TO UPDATE DATA
+------------------
+All data lives in clearly labeled variables near the top of the <script> block
+in index.html. To update for a new month/quarter:
+
+1. Find the relevant variable (e.g., educationMetrics, sectorData, etc.)
+2. Edit the values directly
+3. Save and refresh the browser
+
+No build step required. Also update the matching file in src/data/ to keep
+the reference copies in sync.
+
+
+MIGRATION TO VITE
+-----------------
+If/when disk space is available (~400MB), the project can be migrated to a
+proper Vite + React build:
+
+1. npm create vite@latest . -- --template react
+2. npm install recharts
+3. npm install -D tailwindcss postcss autoprefixer
+4. Move data from index.html variables into src/data/*.js imports
+5. Convert render functions to React components in src/components/ and src/pages/
+6. Replace Chart.js with Recharts (which works fine in a bundled environment)
+
+The src/data/*.js files are already structured for this migration.
+
+
+GITHUB REPOSITORY
+-----------------
+The code was pushed to: https://github.com/jurd145/nyc-economic-mobility-dashboard
+
+
+ITERATION HISTORY
+-----------------
+1. First attempt: React + Recharts + Babel via CDN in a single HTML file.
+   Result: Blue screen. Recharts UMD build returned undefined.
+
+2. Second attempt: Switched to Chart.js (reliable CDN/UMD). Used template
+   literals for HTML generation. Result: Shell rendered but no content.
+   Cause: nested template literals (backticks inside backticks) are a
+   syntax error in JavaScript.
+
+3. Third attempt: Rewrote all HTML generation using string concatenation.
+   Validated syntax using Node.js (Cursor's bundled binary). Result: works.
