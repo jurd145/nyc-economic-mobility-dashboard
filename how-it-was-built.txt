@@ -7,12 +7,13 @@ This dashboard was built for the Office of the Deputy Mayor for Economic
 Justice as an internal tool to track education, workforce, and economic
 development outcomes for New York City. It is a static data dashboard
 (no backend, no authentication) designed to be updated monthly/quarterly
-with new data.
+with new data. Includes an AI chat widget for data Q&A.
 
 The build was done entirely by Claude Code (claude.ai/code) across
 multiple sessions, working in a local directory on macOS.
 
 Powered by SquareOne (https://www.squareoneed.com/).
+Deployed at: https://mobility.squareoneed.com/
 
 
 CONSTRAINTS ENCOUNTERED
@@ -36,15 +37,20 @@ CONSTRAINTS ENCOUNTERED
    a new object wiped internal properties needed for bar rendering.
    Fixed by setting individual properties instead.
 
+6. API KEY SECURITY: GitHub push protection blocked commits containing
+   the Anthropic API key. Solved by moving the key to config.js
+   (gitignored) and loading via window.ANTHROPIC_KEY.
+
 
 SOLUTION: SINGLE-FILE ARCHITECTURE
 -----------------------------------
-The dashboard is a single index.html file (~730 lines) loading three
-CDN resources:
+The dashboard is a single index.html file (~1280 lines) loading CDN
+resources:
 
   - Tailwind CSS (cdn.tailwindcss.com) -- utility-first styling
   - Chart.js 4.4.4 (cdn.jsdelivr.net) -- all charts (line, bar, doughnut)
   - Inter font (Google Fonts) -- typography
+  - Anthropic API (api.anthropic.com) -- AI chat responses
 
 No React. No JSX. No Babel. No build step. No npm. Just vanilla
 JavaScript with string-concatenation-based DOM rendering.
@@ -54,12 +60,13 @@ FILE STRUCTURE
 --------------
 nyc-dashboard/
   index.html             -- The entire dashboard (single file)
+  config.js              -- API key (gitignored, local only)
   CLAUDE.md              -- Guide for future Claude Code sessions
   CHANGELOG.md           -- Version history
   DATA_UPDATE_GUIDE.md   -- Non-developer guide for updating data
   IMPROVEMENTS.md        -- Prioritized enhancement roadmap
   how-it-was-built.txt   -- This file
-  .gitignore
+  .gitignore             -- Excludes config.js, .DS_Store, etc.
   src/data/
     education.js         -- Reference data files (not imported,
     employment.js           kept for future Vite migration)
@@ -69,134 +76,173 @@ nyc-dashboard/
 
 DASHBOARD STRUCTURE
 -------------------
-The dashboard has a landing page and four layers, navigated via
-horizontal tabs in a sticky header bar.
+The dashboard has a landing page, four layers, a data & sources page,
+and a floating AI chat widget. Navigation lives inside full-width hero
+image bands on each page (not a sticky header).
 
 LANDING PAGE (default view)
-  - Title block and framing paragraph
-  - Four clickable layer cards with dynamic headline findings
-  - Each card previews the most important finding from that layer
-  - "Powered by SquareOne" footer
+  - Hero: Brooklyn Bridge image, 420px, white nav + title
+  - Framing paragraph about economic mobility
+  - Four clickable layer cards with images and dynamic headline findings
 
 LAYER 01 - PEOPLE & PIPELINE
-  - Guiding questions + "So What" narrative panel (auto-generated)
-  - 10 metric cards with sparklines and equity disaggregation
-  - Education pipeline funnel (HTML/CSS, color-coded by health)
-  - Education trends line chart with 2019 baseline references
+  - Hero: Classroom image, 300px, guiding questions
+  - "So What" narrative panel (auto-generated from data)
+  - Pathway tree diagram (HTML/CSS, 4 stages from 9th grade to workforce)
+  - 10 metric cards with sparklines, targets, equity disaggregation
+  - Education trends line chart with 2019 baselines
 
 LAYER 02 - LABOR MARKET & SECTORS
-  - Guiding questions + "So What" narrative panel
+  - Hero: NYC buildings image, 300px, guiding questions
+  - "So What" narrative panel
   - 6 metric cards with sparklines
-  - Horizontal bar chart: employment change by sector with wages
+  - Horizontal bar chart: sector employment change with wages
   - Bar chart: Jan-Jul job creation (red intensity gradient)
   - Line chart: entry-level postings with grad supply + peak references
 
 LAYER 03 - FISCAL & ECONOMIC OUTLOOK
-  - Guiding questions + "So What" narrative panel
+  - Hero: City Hall image, 300px, guiding questions
+  - "So What" narrative panel
   - 7 metric cards
   - Doughnut chart: tax revenue by source
-  - Line chart: 3-scenario revenue projections with FY2025 baseline
+  - Line chart: 3-scenario revenue projections with toggle selector
   - Grouped bar chart: budget gaps with/without property tax increase
   - Line chart: entry-level jobs vs graduate supply with 2022 baseline
   - Grouped bar chart: cumulative PIT revenue lost
 
 LAYER 04 - MOBILITYSTAT
-  - Guiding questions + "So What" narrative panel
+  - Hero: Meeting image, 300px, guiding questions
+  - "So What" narrative panel
   - Metric-level status summary (On Track / Watch / Action / No Data)
-  - 7 agency cards with targets, auto-calculated status dots
-  - "Data pending" pulse animation for missing metrics
+  - 7 agency cards with colored avatars, targets, auto-calculated status
+
+DATA & SOURCES
+  - Hero: Library image, 260px
+  - 12-row source table (cards on mobile)
+  - 4 methodology blocks (revenue, jobs, PIT loss, MobilitySTAT)
+
+AI CHAT WIDGET
+  - Floating blue button (bottom-right, always visible)
+  - 380px panel with suggested questions
+  - Sends all dashboard data to Claude claude-sonnet-4-20250514 via Anthropic API
+  - Policy analyst system prompt, prose responses
+  - Stateless (each question independent)
 
 
 DESIGN SYSTEM
 -------------
-Light editorial theme matching SquareOne brand:
+Light editorial theme with accent color #1470ad:
 
-  Background:    #fafafa (off-white)
-  Header/cards:  #ffffff (white)
-  Card border:   #e8e8e5 (subtle warm gray)
+  Background:    #ffffff (white)
+  Content bg:    #fafafa (off-white for contrast)
+  Card bg:       #f9f9f7 (warm off-white, metric cards)
+  Card border:   #e8e8e5 / #eeeeeb (subtle warm gray)
   Text primary:  #1a1a1a (near black)
   Text body:     #333333 (dark gray)
-  Text muted:    #888888 (medium gray)
+  Text muted:    #888888 / #999999 (medium gray)
   Text dim:      #aaaaaa (light gray)
-  Blue accent:   #2563eb (deeper blue for light backgrounds)
-  Green:         #059669 (positive trends)
-  Red:           #dc2626 (negative trends)
-  Amber:         #d97706 (caution)
-  Font:          Inter (Google Fonts)
+  Accent:        #1470ad (nav active, links, So What borders, chat)
+  Blue data:     #2563eb
+  Green:         #059669 (positive/on track)
+  Red:           #dc2626 (negative/action required)
+  Amber:         #d97706 (warning/watch)
+  Font:          Inter (Google Fonts), weights 300-800
 
-No sidebar. Single-line sticky header with title (left) and
-horizontal nav tabs (right). Content centered at max-width 1280px.
+Hero images with rgba(0,0,0,0.7) overlay. White nav text with
+SquareOne logo (CSS brightness invert). Active tab: #1470ad border.
+Cards: 12px border-radius, hover shadows with lift. Agency avatars:
+colored circles with white initials. Entrance animations: fadeInUp
+0.35s with staggered delays.
 
 
 NAVIGATION
 ----------
-- Sticky single-line header bar with dashboard title + 4 nav tabs
-- Title click returns to landing page
-- Tab states: inactive (#888), hover (#333), active (#1a1a1a + bottom border)
+- Hero-integrated nav on every page (scrolls with hero, not sticky)
+- White logo + dashboard title (left), 4 tab links (right)
+- Active tab: white text, #1470ad bottom border
+- Inactive tab: rgba(255,255,255,0.6), hover to 0.9
+- Mobile: nav stacks vertically, short tab labels (People, LMI, Fiscal)
 - Keyboard shortcuts: 0=home, 1-4=layers
 - Smooth fade transition (80ms) between pages
-- Footer with SquareOne branding + version/data info
+- Footer: SquareOne branding + Data & Sources link
 
 
 KEY FEATURES
 ------------
-1. Auto-generated "So What" narrative panels: generateFindings() reads
-   the data and produces conditional sentences. If data changes, the
-   narrative updates automatically.
+1. Hero image navigation: nav lives inside per-page hero bands with
+   background images and dark overlays. No sticky header.
 
-2. Landing page with getHeadlineFinding(): previews the most important
-   finding from each layer on clickable cards.
+2. Auto-generated "So What" narrative panels: generateFindings() reads
+   data and produces conditional sentences. Updates automatically.
 
-3. CSS sparklines in metric cards: 3-5 point bar charts showing trend
-   direction (green=improving, red=declining).
+3. Pathway tree diagram: HTML/CSS visualization of 72,000 students
+   flowing from 9th grade through HS, college, CUNY, to workforce.
 
-4. Equity disaggregation: sub-rows on select metric cards showing
-   breakdowns (e.g., "Students w/ disabilities: 59% | ELLs: 51%").
+4. Education targets on metric cards with auto-calculated status dots.
 
-5. MobilitySTAT targets: each agency metric has a target value with
+5. Scenario selector toggle on revenue projection chart (3 scenarios).
+
+6. CSS sparklines in metric cards showing trend direction.
+
+7. Equity disaggregation rows on select metrics.
+
+8. MobilitySTAT agency cards with colored avatars, targets, and
    auto-calculated status (on-track/watch/action/no-data).
 
-6. Baseline reference lines on time-series charts (2019 or 2022
-   baselines as dashed lines for context).
+9. AI chat widget: floating panel with Anthropic API integration,
+   comprehensive data context serialization, policy analyst prompt.
+
+10. Mobile-optimized: responsive hero heights, stacked nav, short
+    tab labels, card layouts, sources table-to-cards transform.
 
 
 CODE ARCHITECTURE
 -----------------
-The JavaScript in index.html follows this structure:
+1. config.js (gitignored) -- API key via window.ANTHROPIC_KEY
+2. isMobile detection
+3. Config (LAST_UPDATED, DATA_PERIOD)
+4. Color constants (var C = {...})
+5. Chart.js global defaults
+6. All data as plain JS objects/arrays
+7. Helper functions (sentimentColor, trendArrow, buildSparkline,
+   cardTargetStatus, metricCardsHTML, sectionHeader, guidingQuestions,
+   chartBox, pathBlock, vLine, buildPathwayTree, buildAgencyCards,
+   metricStatus, statusDot, imgFallback)
+8. Findings engine (findingsPanel, generateFindings)
+9. Hero component (buildHero, contentWrap)
+10. Page renderers (renderHome, renderPeoplePipeline, renderLaborMarket,
+    renderFiscalOutlook, renderMobilitySTAT, renderSources)
+11. Headline findings (getHeadlineFinding)
+12. Scenario toggle (selectScenario, scenarioColors)
+13. Chat widget (initChatWidget, buildDataContext, submitChatQuestion,
+    toggleChat, resetChat, chatWelcomeHTML)
+14. Navigation (switchPage)
+15. Init (keyboard listener, renderHome, initChatWidget)
 
-1. Config (LAST_UPDATED, DATA_PERIOD)
-2. Color constants (var C = {...})
-3. Chart.js global defaults
-4. All data as plain JS objects/arrays
-5. Helper functions (sentimentColor, trendArrow, buildSparkline,
-   metricCardsHTML, sectionHeader, guidingQuestions, chartBox,
-   buildFunnelHTML, buildAgencyCards, metricStatus, statusDot)
-6. Findings engine (findingsPanel, generateFindings)
-7. Page renderers (renderHome, renderPeoplePipeline, renderLaborMarket,
-   renderFiscalOutlook, renderMobilitySTAT)
-8. Landing page (getHeadlineFinding)
-9. Navigation (updateTabs, switchPage)
-10. Init (keyboard listener, footer timestamps, renderHome)
-
-Chart instances tracked in activeCharts[] and destroyed on page switch.
 All HTML built via string concatenation (zero template literals).
+Chart instances tracked in activeCharts[] and destroyed on page switch.
 
 
 DATA SOURCES
 ------------
 All data hardcoded from:
-  - NYC Comptroller (budget analysis, JOLTS, PIT reports)
-  - Center for an Urban Future ("From Degree to Career", March 2026)
-  - BLS (Employment Projections 2024-2034, JOLTS state data)
-  - NYC DOE (Graduation results via InfoHub)
+  - NYC Public Schools (graduation results via InfoHub)
   - CUNY (Institutional Research Data Book, ASAP/ACE program data)
-  - NYCEDC (State of the NYC Economy, monthly Economic Snapshot)
   - NY State DOL (Labor Statistics for NYC Region)
+  - BLS (Employment Projections 2024-2034, JOLTS state data)
+  - NYC Comptroller (budget analysis, JOLTS, PIT reports)
+  - NYC OMB (Preliminary and Executive Budget)
+  - Center for an Urban Future ("From Degree to Career", March 2026)
+  - NYCEDC (State of the NYC Economy, monthly Economic Snapshot)
+  - Citizens Budget Commission, Brookings Institution, TNTP
 
 
 GITHUB REPOSITORY
 -----------------
 https://github.com/jurd145/nyc-economic-mobility-dashboard
+
+Custom domain: https://mobility.squareoneed.com/
+Hosted via GitHub Pages with CNAME to mobility.squareoneed.com
 
 
 ITERATION HISTORY
@@ -220,3 +266,33 @@ v2.1: Rethemed from dark Bloomberg to light SquareOne editorial design.
 v2.2: Added landing page with dynamic headline findings. Replaced
       sidebar with horizontal top navigation. Single-line sticky header
       with right-aligned tabs. Added site footer with SquareOne branding.
+
+v2.3: Data & Sources page with 12-row source table and 4 methodology
+      blocks. Footer link to sources. Full-width paragraph text.
+
+v3.0: Full visual redesign. SquareOne logo in header. 40px/800 weight
+      titles. 12px border-radius cards with hover lift shadows. 20px
+      So What headlines. 56px section spacing. Pill status badges.
+      Rounded bar chart corners. Warm off-white metric cards.
+
+v3.1: Accent color #1470ad. Dark hero band on landing page with
+      Brooklyn Bridge background. Unsplash images on layer cards.
+      Agency avatar initials. Staggered fadeInUp entrance animations.
+
+v3.2: Comprehensive mobile optimization. Short nav labels, scrollable
+      tabs, pathway tree reflow, chart grid stacking, sources table
+      to cards transform, responsive hero, stacked footer.
+
+v3.3: Mobile fixes: hero padding, chart scaling (tighter Y-axis on
+      education trends, legend repositioning on supply chart).
+      DOE renamed to NYCPS. Mobile nav labels: People, LMI.
+
+v4.0: Hero image navigation. Removed sticky header entirely. Nav
+      integrated into per-page hero image bands with dark overlay.
+      White logo (CSS invert). Each page has its own background image.
+      Pathway tree, scenario toggle, education targets added earlier.
+
+v4.1: AI chat widget with Anthropic API integration. Floating button,
+      380px panel, 6 suggested questions, comprehensive data context
+      serialization, policy analyst system prompt. API key in config.js
+      (gitignored). Mobile hero spacing refinements.
