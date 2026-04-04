@@ -135,7 +135,6 @@
     </div>
   </footer>
 
-<script src="config.js" onerror=""></script>
 <script>
 var isMobile = window.innerWidth < 768;
 var LAST_UPDATED = 'April 2026';
@@ -1044,7 +1043,7 @@ function selectScenario(idx) {
 /* ── CHAT WIDGET ──────────────────────────────────────────────────────────── */
 
 var chatOpen = false;
-var CHAT_API_KEY = window.ANTHROPIC_KEY || '';
+// Chat uses Cloudflare Worker proxy (no client-side API key needed)
 
 var suggestedQuestions = [
   'What are the biggest risks to NYC\'s tax revenue?',
@@ -1182,13 +1181,10 @@ function submitChatQuestion(question) {
       content: 'Here is the current data from the NYC Economic Mobility Dashboard:\n\n' + ctx + '\n\nQuestion: ' + question
     }]
   });
-  fetch('https://api.anthropic.com/v1/messages', {
+  fetch('https://round-meadow-8978.jared-05f.workers.dev', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': CHAT_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Content-Type': 'application/json'
     },
     body: body
   }).then(function(resp) {
