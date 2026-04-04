@@ -47,11 +47,23 @@
     .source-cite a, .findings-panel a { color: #1470ad; }
     @keyframes fadeInUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
     .animate-in { animation: fadeInUp 0.35s ease-out forwards; opacity: 0; }
+    #chat-btn { position:fixed; bottom:24px; right:24px; width:56px; height:56px; border-radius:50%; background:#1470ad; border:none; cursor:pointer; z-index:9999; box-shadow:0 4px 16px rgba(0,0,0,0.2); display:flex; align-items:center; justify-content:center; transition:transform 0.2s,box-shadow 0.2s; }
+    #chat-btn:hover { transform:scale(1.05); box-shadow:0 6px 24px rgba(0,0,0,0.3); }
+    #chat-panel { position:fixed; bottom:96px; right:24px; width:380px; max-height:520px; background:#fff; border-radius:16px; border:1px solid #e8e8e5; box-shadow:0 12px 40px rgba(0,0,0,0.15); z-index:9998; display:none; flex-direction:column; overflow:hidden; opacity:0; transform:translateY(16px); transition:opacity 0.2s,transform 0.2s; }
+    #chat-panel.open { display:flex; opacity:1; transform:translateY(0); }
+    .chat-chip { display:block; width:100%; text-align:left; background:#f7f7f5; border:1px solid #e8e8e5; border-radius:8px; padding:10px 14px; margin-bottom:8px; font-size:13px; color:#333333; cursor:pointer; transition:background 0.15s,border-color 0.15s; line-height:1.4; font-family:Inter,sans-serif; }
+    .chat-chip:hover { background:#f0f0ed; border-color:#1470ad; }
+    @keyframes chatPulse { 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+    @media (max-width:768px) {
+      #chat-panel { width:calc(100% - 32px); right:16px; bottom:88px; max-height:60vh; }
+      #chat-btn { bottom:16px; right:16px; }
+    }
     @media print {
       body { background: #fff !important; color: #000 !important; }
       #content { padding: 12px !important; }
       .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
       .hero-wrap { display: none !important; }
+      #chat-btn, #chat-panel { display: none !important; }
     }
     .tab-short { display: none; }
     .hide-mobile { }
@@ -59,16 +71,16 @@
       .tab-full { display: none; }
       .tab-short { display: inline; }
       .hide-mobile { display: none !important; }
-      .hero-nav { flex-direction: column !important; align-items: flex-start !important; padding: 16px !important; }
-      .hero-tabs { margin-top: 12px !important; gap: 16px !important; }
+      .hero-nav { flex-direction: column !important; align-items: flex-start !important; padding: 16px 16px 0 16px !important; padding-top: 16px !important; }
+      .hero-tabs { margin-top: 16px !important; gap: 16px !important; }
       .hero-tab { font-size: 12px !important; }
-      .hero-wrap { height: auto !important; min-height: 260px; }
-      .hero-wrap-home { min-height: 340px !important; }
-      .hero-wrap-short { min-height: 220px !important; }
-      .hero-title { font-size: 24px !important; }
+      .hero-wrap { height: auto !important; min-height: 280px; }
+      .hero-wrap-home { min-height: 380px !important; }
+      .hero-wrap-short { min-height: 240px !important; }
+      .hero-title { font-size: 24px !important; margin-top: 32px !important; }
       .hero-title-home { font-size: 26px !important; }
       .hero-gq { font-size: 12px !important; }
-      .hero-content { padding: 0 16px 20px 16px !important; }
+      .hero-content { padding: 0 16px 28px 16px !important; }
       .home-grid { grid-template-columns: 1fr !important; }
       .home-card img { height: 100px !important; }
       .home-card > div:last-child { padding: 20px !important; }
@@ -123,6 +135,7 @@
     </div>
   </footer>
 
+<script src="config.js" onerror=""></script>
 <script>
 var isMobile = window.innerWidth < 768;
 var LAST_UPDATED = 'April 2026';
@@ -1028,6 +1041,206 @@ function selectScenario(idx) {
   chart.update();
 }
 
+/* ── CHAT WIDGET ──────────────────────────────────────────────────────────── */
+
+var chatOpen = false;
+var CHAT_API_KEY = window.ANTHROPIC_KEY || '';
+
+var suggestedQuestions = [
+  'What are the biggest risks to NYC\'s tax revenue?',
+  'How does CUNY\'s completion rate compare to the national average?',
+  'Which agencies need the most intervention?',
+  'What\'s the projected entry-level job gap by 2031?',
+  'Why does the education pipeline matter for the city\'s budget?',
+  'What is the fiscal cost of youth underemployment?'
+];
+
+function buildDataContext() {
+  var c = 'NYC ECONOMIC MOBILITY DASHBOARD DATA\n\n';
+  c += 'EDUCATION METRICS:\n';
+  for (var i = 0; i < educationMetrics.length; i++) {
+    var m = educationMetrics[i];
+    c += '- ' + m.label + ': ' + m.value + ' (' + m.context + ')';
+    if (m.target) c += ' [Target: ' + m.target + '% by ' + m.targetYear + ']';
+    if (m.disagg) c += ' [Disagg: ' + m.disagg + ']';
+    c += '\n';
+  }
+  c += '\nEDUCATION PATHWAY (per ~' + pathwayData.cohortSize.toLocaleString() + ' entering 9th grade):\n';
+  c += '- HS Graduation 4yr: ' + pathwayData.graduated4yr.pct + '% (' + pathwayData.graduated4yr.n.toLocaleString() + ')\n';
+  c += '- Graduated 5-6yr: ' + pathwayData.graduated56yr.pct + '% (' + pathwayData.graduated56yr.n.toLocaleString() + ')\n';
+  c += '- Dropped out: ' + pathwayData.droppedOut.pct + '% (' + pathwayData.droppedOut.n.toLocaleString() + ')\n';
+  c += '- College destinations: CUNY 2yr ' + pathwayData.cuny2yr.pct + '%, CUNY 4yr ' + pathwayData.cuny4yr.pct + '%, Private 4yr ' + pathwayData.private4yr.pct + '%, Other 2yr ' + pathwayData.other2yr.pct + '%, No college ' + pathwayData.noCollege.pct + '%\n';
+  c += '- CUNY 2yr 3yr outcomes: Completed ' + pathwayData.cuny2yrCompleted.pct + '%, Transferred ' + pathwayData.cuny2yrTransferred.pct + '%, Still enrolled ' + pathwayData.cuny2yrEnrolled.pct + '%, Stopped out ' + pathwayData.cuny2yrStopped.pct + '%\n';
+  c += '- CUNY 4yr 6yr outcomes: Completed ' + pathwayData.cuny4yrCompleted.pct + '%, Transferred ' + pathwayData.cuny4yrTransferred.pct + '%, Stopped out ' + pathwayData.cuny4yrStopped.pct + '%\n';
+  c += '- Workforce entry: ' + pathwayData.paidInternship + '% had paid internship, ' + pathwayData.employedWithin1yr + '% employed within 1yr, 1 in ' + pathwayData.retailFoodSvc + ' in retail/food svc 5yr later\n';
+  c += '\nEDUCATION TRENDS (2016-2025):\n';
+  for (var i = 0; i < educationTrends.labels.length; i++) {
+    c += '- ' + educationTrends.labels[i] + ': HS Grad ' + educationTrends.hsGrad[i] + '%, College Enroll ' + (educationTrends.collegeEnroll[i] !== null ? educationTrends.collegeEnroll[i] + '%' : 'N/A') + ', CUNY 6yr ' + educationTrends.cuny6yr[i] + '%\n';
+  }
+  c += '\nEMPLOYMENT METRICS:\n';
+  for (var i = 0; i < employmentMetrics.length; i++) {
+    var m = employmentMetrics[i];
+    c += '- ' + m.label + ': ' + m.value + ' (' + m.context + ')\n';
+  }
+  c += '\nSECTOR EMPLOYMENT CHANGES (over-the-year):\n';
+  for (var i = 0; i < sectorData.sectors.length; i++) {
+    c += '- ' + sectorData.sectors[i] + ': ' + (sectorData.changes[i] >= 0 ? '+' : '') + sectorData.changes[i].toLocaleString() + ' jobs, median $' + sectorData.wages[i] + '/hr\n';
+  }
+  c += '\nJOB CREATION (Jan-Jul by year, thousands): ';
+  for (var i = 0; i < jobCreation.labels.length; i++) c += jobCreation.labels[i] + ': ' + jobCreation.values[i] + 'K; ';
+  c += '\nENTRY-LEVEL POSTINGS (thousands): ';
+  for (var i = 0; i < entryLevel.labels.length; i++) c += entryLevel.labels[i] + ': ' + entryLevel.values[i] + 'K; ';
+  c += '\n\nFISCAL METRICS:\n';
+  for (var i = 0; i < fiscalMetrics.length; i++) {
+    c += '- ' + fiscalMetrics[i].label + ': ' + fiscalMetrics[i].value + ' (' + fiscalMetrics[i].context + ')\n';
+  }
+  c += '\nTAX REVENUE BY SOURCE (FY2026): ';
+  for (var i = 0; i < taxSources.labels.length; i++) c += taxSources.labels[i] + ' $' + taxSources.amounts[i] + 'B (' + taxSources.shares[i] + '%); ';
+  c += '\n\nREVENUE PROJECTIONS ($B):\n';
+  for (var i = 0; i < revProjections.labels.length; i++) {
+    c += '- ' + revProjections.labels[i] + ': OMB $' + revProjections.omb[i] + 'B, Comptroller $' + revProjections.comptroller[i] + 'B, Stagnation $' + revProjections.stagnation[i] + 'B\n';
+  }
+  c += '\nBUDGET GAPS ($B, without property tax increase):\n';
+  for (var i = 0; i < budgetGaps.labels.length; i++) {
+    c += '- ' + budgetGaps.labels[i] + ': $' + budgetGaps.without[i] + 'B (with increase: $' + budgetGaps.withIncrease[i] + 'B)\n';
+  }
+  c += '\nENTRY-LEVEL JOBS vs GRADUATE SUPPLY (thousands):\n';
+  for (var i = 0; i < elvSupply.labels.length; i++) {
+    c += '- ' + elvSupply.labels[i] + ': BLS Baseline ' + elvSupply.baseline[i] + 'K, Moderate ' + elvSupply.moderate[i] + 'K, Accelerated ' + elvSupply.accelerated[i] + 'K, Grad Supply ' + elvSupply.supply[i] + 'K\n';
+  }
+  c += '\nCUMULATIVE PIT REVENUE LOST ($M):\n';
+  for (var i = 0; i < pitLost.labels.length; i++) {
+    c += '- ' + pitLost.labels[i] + ': Moderate $' + pitLost.moderate[i] + 'M, Accelerated $' + pitLost.accelerated[i] + 'M\n';
+  }
+  c += '\nAGENCY STATUS (MobilitySTAT):\n';
+  for (var i = 0; i < agencies.length; i++) {
+    var a = agencies[i];
+    c += '- ' + a.name + ' (' + a.fullName + '): Status=' + a.status + '\n';
+    for (var j = 0; j < a.metrics.length; j++) {
+      var m = a.metrics[j];
+      if (m.pending) {
+        c += '    ' + m.label + ': Data pending';
+      } else {
+        c += '    ' + m.label + ': ' + m.value + ' (trend: ' + m.trend + ')';
+      }
+      if (m.target !== null && m.target !== undefined) c += ' [Target: ' + m.target + (m.targetYear ? ' by ' + m.targetYear : '') + ']';
+      c += '\n';
+    }
+  }
+  return c;
+}
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  var panel = document.getElementById('chat-panel');
+  var btn = document.getElementById('chat-btn');
+  if (chatOpen) {
+    panel.style.display = 'flex';
+    setTimeout(function() { panel.classList.add('open'); }, 10);
+    btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  } else {
+    panel.classList.remove('open');
+    setTimeout(function() { panel.style.display = 'none'; }, 200);
+    btn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+  }
+}
+
+function chatWelcomeHTML() {
+  var h = '<div style="font-size:13px;color:#888888;line-height:1.5;margin-bottom:20px;">I can answer questions about the data in this dashboard. Ask me anything, or try one of these:</div>';
+  for (var i = 0; i < suggestedQuestions.length; i++) {
+    h += '<button class="chat-chip" onclick="submitChatQuestion(this.textContent)">' + suggestedQuestions[i] + '</button>';
+  }
+  return h;
+}
+
+function resetChat() {
+  document.getElementById('chat-content').innerHTML = chatWelcomeHTML();
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-input').disabled = false;
+  document.getElementById('chat-submit').disabled = false;
+}
+
+function submitChatQuestion(question) {
+  if (!question || !question.trim()) return;
+  question = question.trim();
+  var contentEl = document.getElementById('chat-content');
+  var inputEl = document.getElementById('chat-input');
+  var submitEl = document.getElementById('chat-submit');
+  // Show loading
+  contentEl.innerHTML = '<div style="text-align:center;padding:40px 0;"><div style="font-size:14px;color:#888888;animation:chatPulse 1.2s ease-in-out infinite;">Thinking...</div></div>';
+  inputEl.value = question;
+  inputEl.disabled = true;
+  submitEl.disabled = true;
+  // Build context and call API
+  var ctx = buildDataContext();
+  var body = JSON.stringify({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    system: 'You are a policy analyst for the NYC Office of the Deputy Mayor for Economic Justice. You have access to the NYC Economic Mobility Dashboard data, which tracks education outcomes, workforce development, labor market conditions, fiscal health, and agency accountability across New York City.\n\nRules:\n- Answer using ONLY the data provided in the context. Do not make up numbers or reference data not in the context.\n- Be concise. 2-4 short paragraphs maximum.\n- Cite specific numbers from the data.\n- Connect findings across domains when relevant (e.g., how education pipeline metrics relate to fiscal projections).\n- Frame answers in terms of the Economic Mobility agenda: education, workforce, and economic development are three parts of the same engine.\n- When discussing problems, briefly note what intervention would address them (career-connected learning, employer partnerships, credential alignment, etc.).\n- Do not use bullet points. Write in prose.\n- Do not use the word "straightforward," "genuinely," or "honestly."\n- Do not start with "Great question" or similar preamble. Start with the answer.',
+    messages: [{
+      role: 'user',
+      content: 'Here is the current data from the NYC Economic Mobility Dashboard:\n\n' + ctx + '\n\nQuestion: ' + question
+    }]
+  });
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CHAT_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: body
+  }).then(function(resp) {
+    return resp.json();
+  }).then(function(data) {
+    if (data.content && data.content[0] && data.content[0].text) {
+      var answer = data.content[0].text;
+      var paras = answer.split('\n\n');
+      var html = '';
+      for (var i = 0; i < paras.length; i++) {
+        if (paras[i].trim()) html += '<p style="font-size:14px;color:#333333;line-height:1.7;margin:0 0 12px 0;">' + paras[i].trim() + '</p>';
+      }
+      html += '<div onclick="resetChat()" style="font-size:12px;color:#1470ad;cursor:pointer;margin-top:16px;">Ask another question</div>';
+      contentEl.innerHTML = html;
+    } else {
+      var errMsg = (data.error && data.error.message) ? data.error.message : 'Something went wrong. Please try again.';
+      contentEl.innerHTML = '<p style="font-size:14px;color:#dc2626;">' + errMsg + '</p><div onclick="resetChat()" style="font-size:12px;color:#1470ad;cursor:pointer;margin-top:16px;">Try again</div>';
+    }
+    inputEl.value = '';
+    inputEl.disabled = false;
+    submitEl.disabled = false;
+  }).catch(function(err) {
+    contentEl.innerHTML = '<p style="font-size:14px;color:#dc2626;">Something went wrong. Please try again.</p><div onclick="resetChat()" style="font-size:12px;color:#1470ad;cursor:pointer;margin-top:16px;">Try again</div>';
+    inputEl.value = '';
+    inputEl.disabled = false;
+    submitEl.disabled = false;
+  });
+}
+
+function initChatWidget() {
+  var widget = document.createElement('div');
+  widget.innerHTML =
+    '<button id="chat-btn" onclick="toggleChat()">' +
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>' +
+    '</button>' +
+    '<div id="chat-panel">' +
+    '<div style="background:#1470ad;padding:16px 20px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;">' +
+    '<span style="font-size:15px;font-weight:600;color:#ffffff;">Ask about the data</span>' +
+    '<span onclick="toggleChat()" style="cursor:pointer;color:#ffffff;font-size:18px;opacity:0.7;line-height:1;">&times;</span>' +
+    '</div>' +
+    '<div id="chat-content" style="flex:1;overflow-y:auto;padding:20px;scrollbar-width:thin;scrollbar-color:#cccccc transparent;">' + chatWelcomeHTML() + '</div>' +
+    '<div style="border-top:1px solid #e8e8e5;padding:12px 16px;display:flex;gap:8px;">' +
+    '<input id="chat-input" type="text" placeholder="Ask a question..." style="flex:1;border:1px solid #e8e8e5;border-radius:8px;padding:10px 14px;font-size:14px;font-family:Inter,sans-serif;color:#1a1a1a;outline:none;" onfocus="this.style.borderColor=\'#1470ad\';" onblur="this.style.borderColor=\'#e8e8e5\';" />' +
+    '<button id="chat-submit" onclick="submitChatQuestion(document.getElementById(\'chat-input\').value)" style="background:#1470ad;border:none;border-radius:8px;padding:10px 16px;cursor:pointer;color:#ffffff;font-size:13px;font-weight:600;font-family:Inter,sans-serif;">Send</button>' +
+    '</div>' +
+    '</div>';
+  document.body.appendChild(widget);
+  document.getElementById('chat-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitChatQuestion(this.value);
+  });
+}
+
 /* ── NAV + INIT ───────────────────────────────────────────────────────────── */
 
 var pages = [
@@ -1063,7 +1276,7 @@ document.addEventListener('keydown', function(e) {
   else if (key === '3') switchPage('fiscal');
   else if (key === '4') switchPage('mobilitystat');
 });
-try { renderHome(); } catch(e) {
+try { renderHome(); initChatWidget(); } catch(e) {
   document.getElementById('content').innerHTML = '<pre style="color:#dc2626;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>';
 }
 </script>
