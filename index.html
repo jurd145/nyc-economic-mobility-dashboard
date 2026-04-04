@@ -38,12 +38,9 @@
     #content { transition: opacity 0.15s ease; }
     .findings-panel { background: #f7f7f5; border-left: 4px solid #1470ad; padding: 28px 32px; margin: 24px 0 40px 0; border-radius: 0 12px 12px 0; }
     .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-    .nav-tab { font-size: 13px; font-weight: 500; color: #999999; padding: 12px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s; letter-spacing: 0.2px; }
-    .nav-tab:hover { color: #333333; }
-    .nav-tab.active { color: #1a1a1a; font-weight: 600; border-bottom-color: #1470ad; }
-    #site-header { position: sticky; top: 0; z-index: 50; background: #ffffff; }
-    #title-link { cursor: pointer; transition: opacity 0.15s; }
-    #title-link:hover { opacity: 0.7; }
+    .hero-tab { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.6); padding: 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; padding-bottom: 4px; transition: color 0.15s; letter-spacing: 0.2px; }
+    .hero-tab:hover { color: rgba(255,255,255,0.9); }
+    .hero-tab.active { color: #ffffff; font-weight: 600; border-bottom-color: #1470ad; }
     .home-card { background: #ffffff; border: 1px solid #e8e8e5; border-radius: 12px; padding: 32px; cursor: pointer; transition: all 0.2s ease; }
     .home-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); border-color: #1470ad; border-top: 3px solid #1470ad; transform: translateY(-2px); }
     .home-card { border-top: 3px solid transparent; }
@@ -52,10 +49,9 @@
     .animate-in { animation: fadeInUp 0.35s ease-out forwards; opacity: 0; }
     @media print {
       body { background: #fff !important; color: #000 !important; }
-      #site-header { position: static !important; }
       #content { padding: 12px !important; }
       .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
-      #nav-bar { display: none !important; }
+      .hero-wrap { display: none !important; }
     }
     .tab-short { display: none; }
     .hide-mobile { }
@@ -63,11 +59,16 @@
       .tab-full { display: none; }
       .tab-short { display: inline; }
       .hide-mobile { display: none !important; }
-      #site-header > div:first-child { padding: 12px 16px !important; }
-      #nav-bar { gap: 16px !important; padding: 0 16px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-      #nav-bar::-webkit-scrollbar { display: none; }
-      .nav-tab { font-size: 12px !important; white-space: nowrap; flex-shrink: 0; }
-      #content { padding: 32px 16px !important; }
+      .hero-nav { flex-direction: column !important; align-items: flex-start !important; padding: 16px !important; }
+      .hero-tabs { margin-top: 12px !important; gap: 16px !important; }
+      .hero-tab { font-size: 12px !important; }
+      .hero-wrap { height: auto !important; min-height: 260px; }
+      .hero-wrap-home { min-height: 340px !important; }
+      .hero-wrap-short { min-height: 220px !important; }
+      .hero-title { font-size: 24px !important; }
+      .hero-title-home { font-size: 26px !important; }
+      .hero-gq { font-size: 12px !important; }
+      .hero-content { padding: 0 16px 20px 16px !important; }
       .home-grid { grid-template-columns: 1fr !important; }
       .home-card img { height: 100px !important; }
       .home-card > div:last-child { padding: 20px !important; }
@@ -85,9 +86,6 @@
       .agency-metric-row > span:first-child { width: 100%; }
       .scenario-row { flex-wrap: wrap; }
       .scenario-row button { padding: 6px 12px !important; font-size: 11px !important; }
-      .hero-outer { margin-left: -16px !important; margin-right: -16px !important; margin-top: -32px !important; }
-      .hero-band { padding: 48px 16px 40px 16px !important; }
-      .hero-band h1 { font-size: 28px !important; }
       .chart-tall { min-height: 300px; }
       .chart-xtall { min-height: 320px; }
       .tree-stage1 { flex-wrap: wrap; }
@@ -113,22 +111,7 @@
   </style>
 </head>
 <body>
-  <div id="site-header">
-    <div style="padding:16px 40px; display:flex; justify-content:space-between; align-items:center;">
-      <div style="display:flex; align-items:center; gap:16px;">
-        <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer"><img src="https://images.squarespace-cdn.com/content/v1/68b9efd6eda9040e44ba9735/d8cff8da-566a-4092-a533-0d6529e0b9e8/Square+one+%281%29.png?format=300w" alt="SquareOne" style="height:28px;display:block;" /></a>
-        <span id="title-link" onclick="switchPage('home')" style="font-size:15px; font-weight:600; color:#1a1a1a; letter-spacing:0.02em;">NYC Economic Mobility Dashboard</span>
-      </div>
-      <span class="hide-mobile" style="font-size:12px; color:#aaaaaa;">Internal Use Only</span>
-    </div>
-    <div id="nav-bar" style="padding:0 40px; display:flex; align-items:center; gap:36px; border-bottom:1px solid #e8e8e5;">
-      <button class="nav-tab" id="tab-people" onclick="switchPage('people')"><span class="tab-full">People & Pipeline</span><span class="tab-short">People</span></button>
-      <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')"><span class="tab-full">Labor Market & Sectors</span><span class="tab-short">LMI</span></button>
-      <button class="nav-tab" id="tab-fiscal" onclick="switchPage('fiscal')"><span class="tab-full">Fiscal & Economic Outlook</span><span class="tab-short">Fiscal</span></button>
-      <button class="nav-tab" id="tab-mobilitystat" onclick="switchPage('mobilitystat')">MobilitySTAT</button>
-    </div>
-  </div>
-  <div id="content" style="max-width:1200px; margin:0 auto; padding:48px 40px;"></div>
+  <div id="content"></div>
   <footer style="border-top:1px solid #e8e8e5; padding:32px 40px; display:flex; justify-content:space-between; align-items:flex-start; background:#ffffff;">
     <div>
       <div style="font-size:12px; color:#aaaaaa;">Powered by <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer" style="color:#1470ad; text-decoration:none;" onmouseover="this.style.textDecoration='underline';" onmouseout="this.style.textDecoration='none';">SquareOne</a></div>
@@ -634,17 +617,72 @@ function buildAgencyCards(sorted) {
   return h + '</div>';
 }
 
+/* ── HERO COMPONENT ───────────────────────────────────────────────────────── */
+
+function buildHero(opts) {
+  var hCls = 'hero-wrap';
+  if (opts.activePage === null && opts.lastUpdated) hCls += ' hero-wrap-home';
+  if (opts.activePage === null && !opts.lastUpdated && !opts.guidingQuestions) hCls += ' hero-wrap-short';
+  var h = '<div class="' + hCls + '" style="position:relative;width:100%;height:' + opts.height + ';overflow:hidden;display:flex;flex-direction:column;">';
+  // BG image + overlay
+  h += '<div style="position:absolute;top:0;left:0;width:100%;height:100%;background-image:url(' + opts.bgImage + ');background-size:cover;background-position:center;z-index:0;"></div>';
+  h += '<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1;"></div>';
+  // Content layer
+  h += '<div class="hero-content" style="position:relative;z-index:2;width:100%;max-width:1280px;margin:0 auto;padding:0 40px;display:flex;flex-direction:column;height:100%;">';
+  // Nav row
+  h += '<div class="hero-nav" style="display:flex;align-items:center;justify-content:space-between;padding-top:20px;margin-bottom:auto;">';
+  // Left: logo + title
+  h += '<div style="display:flex;align-items:center;gap:12px;">';
+  h += '<img src="https://images.squarespace-cdn.com/content/v1/68b9efd6eda9040e44ba9735/d8cff8da-566a-4092-a533-0d6529e0b9e8/Square+one+%281%29.png?format=300w" alt="SquareOne" style="height:28px;cursor:pointer;filter:brightness(0) invert(1);" onclick="switchPage(\'home\')" onerror="this.style.display=\'none\';" />';
+  h += '<span onclick="switchPage(\'home\')" style="font-size:14px;color:#ffffff;font-weight:500;cursor:pointer;">NYC Economic Mobility Dashboard</span>';
+  h += '</div>';
+  // Right: tabs
+  var tabs = [
+    {id:'people', full:'People & Pipeline', short:'People'},
+    {id:'labor', full:'Labor Market & Sectors', short:'LMI'},
+    {id:'fiscal', full:'Fiscal & Economic Outlook', short:'Fiscal'},
+    {id:'mobilitystat', full:'MobilitySTAT', short:'MobilitySTAT'}
+  ];
+  h += '<div class="hero-tabs" style="display:flex;align-items:center;gap:28px;">';
+  for (var t = 0; t < tabs.length; t++) {
+    var isActive = tabs[t].id === opts.activePage;
+    h += '<button class="hero-tab' + (isActive ? ' active' : '') + '" onclick="switchPage(\'' + tabs[t].id + '\')">';
+    h += '<span class="tab-full">' + tabs[t].full + '</span><span class="tab-short">' + tabs[t].short + '</span>';
+    h += '</button>';
+  }
+  h += '</div></div>';
+  // Title content (bottom)
+  h += '<div style="padding-bottom:40px;">';
+  var titleCls = opts.lastUpdated ? 'hero-title hero-title-home' : 'hero-title';
+  h += '<div class="' + titleCls + '" style="font-size:' + (opts.lastUpdated ? '38' : '32') + 'px;font-weight:800;color:#ffffff;line-height:1.15;">' + opts.title + '</div>';
+  if (opts.subtitle) {
+    h += '<div style="font-size:15px;color:rgba(255,255,255,0.5);margin-top:8px;">' + opts.subtitle + '</div>';
+  }
+  if (opts.lastUpdated) {
+    h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;">' + opts.lastUpdated + '</div>';
+  }
+  if (opts.guidingQuestions) {
+    h += '<div class="hero-gq" style="font-size:14px;font-style:italic;color:rgba(255,255,255,0.55);margin-top:16px;max-width:700px;line-height:1.5;">' + opts.guidingQuestions + '</div>';
+  }
+  h += '</div></div></div>';
+  return h;
+}
+
+function contentWrap(inner) {
+  return '<div style="max-width:1200px;margin:0 auto;padding:48px 40px;">' + inner + '</div>';
+}
+
 /* ── PAGE RENDERERS ───────────────────────────────────────────────────────── */
 
 function renderPeoplePipeline() {
   document.getElementById('content').innerHTML =
-    '<div class="animate-in">' + sectionHeader('People & Pipeline', 'Education-to-workforce outcomes for NYC students') +
-    guidingQuestions('Are more New Yorkers completing the education pipeline than last year? Where are they falling out? Who is being left behind?') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.08s;">' + generateFindings('people') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.16s;">' + buildPathwayTree() + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.24s;">' + metricCardsHTML(educationMetrics) + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.32s;">' + chartBox('eduTrends', 'Education Trends 2016\u20132025', 'Source: NYC DOE Graduation Results, CUNY IR Data Book.',
-      '<p style="font-size:12px;color:' + C.red + ';margin-top:8px;font-weight:600;">\u26A0 2025 HS Graduation Rate: largest drop in 20 years</p>') + '</div>';
+    buildHero({bgImage:'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1920&q=80',height:'300px',title:'People & Pipeline',subtitle:null,lastUpdated:null,guidingQuestions:'Are more New Yorkers completing the education pipeline than last year? Where are they falling out? Who is being left behind?',activePage:'people'}) +
+    contentWrap(
+    '<div class="animate-in">' + generateFindings('people') + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.08s;">' + buildPathwayTree() + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.16s;">' + metricCardsHTML(educationMetrics) + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.24s;">' + chartBox('eduTrends', 'Education Trends 2016\u20132025', 'Source: NYC DOE Graduation Results, CUNY IR Data Book.',
+      '<p style="font-size:12px;color:' + C.red + ';margin-top:8px;font-weight:600;">\u26A0 2025 HS Graduation Rate: largest drop in 20 years</p>') + '</div>');
   destroyCharts();
   var hsBase = educationTrends.hsGrad[3];
   var ceBase = educationTrends.collegeEnroll[3];
@@ -663,15 +701,15 @@ function renderPeoplePipeline() {
 
 function renderLaborMarket() {
   document.getElementById('content').innerHTML =
-    '<div class="animate-in">' + sectionHeader('Labor Market & Sectors', 'Employment trends, sector performance, and job market health \u2014 Dec 2025') +
-    guidingQuestions('Which sectors are creating jobs? Are new jobs accessible to the workers who need them most? Is the entry-level on-ramp keeping pace with graduate supply?') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.08s;">' + generateFindings('labor') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.16s;">' + metricCardsHTML(employmentMetrics) + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.24s;">' + chartBox('sectorChart', 'Employment Change by Sector \u2014 Over-the-Year', 'Source: NYS DOL, BLS QCEW.',
+    buildHero({bgImage:'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&q=80',height:'300px',title:'Labor Market & Sectors',subtitle:null,lastUpdated:null,guidingQuestions:'Which sectors are creating jobs? Are new jobs accessible to the workers who need them most? Is the entry-level on-ramp keeping pace with graduate supply?',activePage:'labor'}) +
+    contentWrap(
+    '<div class="animate-in">' + generateFindings('labor') + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.08s;">' + metricCardsHTML(employmentMetrics) + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.16s;">' + chartBox('sectorChart', 'Employment Change by Sector \u2014 Over-the-Year', 'Source: NYS DOL, BLS QCEW.',
       '<p style="font-size:12px;color:' + C.amber + ';margin-top:8px;">\u26A0 After benchmark revisions, gains in Prof & Business Svcs and Information are expected to be revised away (NYC Comptroller, Feb 2026).</p>') + '</div>' +
-    '<div class="animate-in chart-grid" style="animation-delay:0.32s;display:grid;grid-template-columns:1fr 1fr;gap:24px;">' +
+    '<div class="animate-in chart-grid" style="animation-delay:0.24s;display:grid;grid-template-columns:1fr 1fr;gap:24px;">' +
     chartBox('jobCreationChart', 'Private Sector Job Creation \u2014 Jan\u2013Jul by Year (thousands)', 'Source: NYS DOL.') +
-    chartBox('entryLevelChart', 'Entry-Level Job Postings 2019\u20132024 (thousands)', 'Source: Lightcast / NYCEDC.') + '</div>';
+    chartBox('entryLevelChart', 'Entry-Level Job Postings 2019\u20132024 (thousands)', 'Source: Lightcast / NYCEDC.') + '</div>');
   destroyCharts();
   addChart(new Chart(document.getElementById('sectorChart'), {
     type:'bar',
@@ -698,11 +736,11 @@ function renderLaborMarket() {
 
 function renderFiscalOutlook() {
   document.getElementById('content').innerHTML =
-    '<div class="animate-in">' + sectionHeader('Fiscal & Economic Outlook', 'Tax revenues, budget gaps, and multi-year projections') +
-    guidingQuestions('Can the city\u2019s tax base sustain current spending levels? What happens to revenue if hiring trends and AI displacement continue? What is the fiscal cost of inaction?') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.08s;">' + generateFindings('fiscal') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.16s;">' + metricCardsHTML(fiscalMetrics) + '</div>' +
-    '<div class="animate-in chart-grid" style="animation-delay:0.24s;display:grid;grid-template-columns:1fr 2fr;gap:24px;">' +
+    buildHero({bgImage:'https://images.unsplash.com/photo-1534996858221-380b92700493?w=1920&q=80',height:'300px',title:'Fiscal & Economic Outlook',subtitle:null,lastUpdated:null,guidingQuestions:'Can the city\u2019s tax base sustain current spending levels? What happens to revenue if hiring trends and AI displacement continue? What is the fiscal cost of inaction?',activePage:'fiscal'}) +
+    contentWrap(
+    '<div class="animate-in">' + generateFindings('fiscal') + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.08s;">' + metricCardsHTML(fiscalMetrics) + '</div>' +
+    '<div class="animate-in chart-grid" style="animation-delay:0.16s;display:grid;grid-template-columns:1fr 2fr;gap:24px;">' +
     chartBox('taxDonut', 'FY2026 Tax Revenue by Source', 'Source: NYC OMB.') +
     '<div class="chart-section"><div class="chart-title">Revenue Projections FY2025\u2013FY2030 ($B) \u2014 Three Scenarios</div>' +
     '<div class="scenario-row" style="display:flex;gap:12px;margin-bottom:20px;">' +
@@ -712,7 +750,7 @@ function renderFiscalOutlook() {
     '</div><div><canvas id="revProjections"></canvas></div><p class="source-cite">Source: NYC OMB, NYC Comptroller.</p></div>' + '</div>' +
     '<div class="animate-in" style="animation-delay:0.32s;">' + chartBox('budgetGapChart', 'Projected Budget Gaps FY2026\u2013FY2030 ($B)', 'Source: NYC Comptroller, CBC.') + '</div>' +
     '<div class="animate-in" style="animation-delay:0.40s;">' + chartBox('elvSupplyChart', 'Entry-Level Jobs vs. Annual Graduate Supply 2022\u20132031 (thousands)', 'Source: BLS, Lightcast, CUNY IR.') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.48s;">' + chartBox('pitLostChart', 'Cumulative PIT Revenue Lost from Underemployed Graduates ($M)', 'Source: NYC Comptroller, Center for an Urban Future.') + '</div>';
+    '<div class="animate-in" style="animation-delay:0.48s;">' + chartBox('pitLostChart', 'Cumulative PIT Revenue Lost from Underemployed Graduates ($M)', 'Source: NYC Comptroller, Center for an Urban Future.') + '</div>');
   destroyCharts();
   addChart(new Chart(document.getElementById('taxDonut'), {
     type:'doughnut',
@@ -762,10 +800,10 @@ function renderMobilitySTAT() {
   var statusOrder = { action:0, watch:1, track:2 };
   var sorted = agencies.slice().sort(function(a,b){ return statusOrder[a.status]-statusOrder[b.status]; });
   document.getElementById('content').innerHTML =
-    '<div class="animate-in">' + sectionHeader('MobilitySTAT', 'Agency accountability \u2014 owned metrics with trend indicators and proposed targets') +
-    guidingQuestions('Which agencies are meeting their targets? Where do metrics lack data entirely? What interventions have been triggered?') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.08s;">' + generateFindings('mobilitystat') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.16s;">' + buildAgencyCards(sorted) + '</div>';
+    buildHero({bgImage:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1920&q=80',height:'300px',title:'MobilitySTAT',subtitle:null,lastUpdated:null,guidingQuestions:'Which agencies are meeting their targets? Where do metrics lack data entirely? What interventions have been triggered?',activePage:'mobilitystat'}) +
+    contentWrap(
+    '<div class="animate-in">' + generateFindings('mobilitystat') + '</div>' +
+    '<div class="animate-in" style="animation-delay:0.08s;">' + buildAgencyCards(sorted) + '</div>');
   destroyCharts();
 }
 
@@ -831,14 +869,8 @@ function renderHome() {
     { id:'mobilitystat', num:'04', label:'MobilitySTAT', sub:'Agency-level accountability. Which agencies are hitting targets and which need intervention.', img:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&q=80' }
   ];
   var h = '';
-  // Dark hero band
-  h += '<div class="animate-in hero-outer" style="background:#1a1a1a;background-image:url(https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80);background-size:cover;background-position:center;margin:-48px -40px 0 -40px;position:relative;">';
-  h += '<div class="hero-band" style="background:rgba(0,0,0,0.75);padding:72px 40px 64px 40px;">';
-  h += '<div style="max-width:1200px;margin:0 auto;">';
-  h += '<h1 style="font-size:40px;font-weight:800;color:#ffffff;margin:0 0 8px 0;line-height:1.2;">New York City Economic Mobility Dashboard</h1>';
-  h += '<div style="font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Office of the Deputy Mayor for Economic Justice</div>';
-  h += '<div style="font-size:12px;color:rgba(255,255,255,0.3);">Last updated: ' + LAST_UPDATED + '</div>';
-  h += '</div></div></div>';
+  h += buildHero({bgImage:'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80',height:'420px',title:'New York City Economic Mobility Dashboard',subtitle:'Office of the Deputy Mayor for Economic Justice',lastUpdated:'Last updated: ' + LAST_UPDATED,guidingQuestions:null,activePage:null});
+  h += '<div style="max-width:1200px;margin:0 auto;padding:0 40px;">';
   // Framing paragraph
   h += '<div class="animate-in" style="animation-delay:0.08s;">';
   h += '<p style="font-size:16px;line-height:1.7;color:#333333;margin:56px 0 56px 0;">' +
@@ -856,12 +888,12 @@ function renderHome() {
     h += '<div class="home-card" onclick="switchPage(\'' + c.id + '\')" style="padding:0;overflow:hidden;">';
     h += '<img src="' + c.img + '" alt="" style="width:100%;height:140px;object-fit:cover;display:block;" onerror="imgFallback(this)" />';
     h += '<div style="padding:24px 28px 28px 28px;">';
-    h += '<div style="font-size:13px;font-weight:600;color:#999999;">' + c.num + '</div>';
-    h += '<div style="font-size:22px;font-weight:700;color:#1a1a1a;margin-top:4px;">' + c.label + '</div>';
+    h += '<div style="font-size:22px;font-weight:700;color:#1a1a1a;">' + c.label + '</div>';
     h += '<div style="font-size:14px;color:#888888;margin-top:12px;line-height:1.6;">' + c.sub + '</div>';
     h += '<div style="font-size:14px;font-weight:500;color:' + fColor + ';margin-top:20px;line-height:1.5;">' + finding.text + '</div>';
     h += '</div></div>';
   }
+  h += '</div>';
   h += '</div>';
   document.getElementById('content').innerHTML = h;
   destroyCharts();
@@ -871,11 +903,8 @@ function renderHome() {
 
 function renderSources() {
   var h = '';
-  h += '<div class="animate-in"><img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&q=80" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:12px;display:block;margin-bottom:40px;" onerror="imgFallback(this)" /></div>';
-  h += '<div class="animate-in" style="margin-bottom:32px;animation-delay:0.08s;">';
-  h += '<h1 style="font-size:40px;font-weight:800;color:#1a1a1a;margin:0 0 8px 0;line-height:1.2;">Data & Sources</h1>';
-  h += '<div style="font-size:15px;color:#888888;">All data in this dashboard is sourced from public agencies and independent research organizations.</div>';
-  h += '</div>';
+  h += buildHero({bgImage:'https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1200&q=80',height:'260px',title:'Data & Sources',subtitle:'All data in this dashboard is sourced from public agencies and independent research organizations.',lastUpdated:null,guidingQuestions:null,activePage:null});
+  h += '<div style="max-width:1200px;margin:0 auto;padding:48px 40px;">';
   h += '<p style="font-size:16px;line-height:1.7;color:#333333;margin:0 0 40px 0;">' +
     'This dashboard is updated on a monthly, quarterly, and annual cadence depending on the metric. ' +
     'The most recent data used is noted for each source below. Projection models (revenue scenarios, ' +
@@ -943,6 +972,7 @@ function renderSources() {
     h += '<p style="font-size:14px;line-height:1.7;color:#333333;margin:0;">' + methods[i][1] + '</p>';
     h += '</div>';
   }
+  h += '</div>';
   document.getElementById('content').innerHTML = h;
   destroyCharts();
 }
@@ -1008,29 +1038,15 @@ var pages = [
   { id:'mobilitystat', render:renderMobilitySTAT },
   { id:'sources', render:renderSources }
 ];
-var tabIds = ['people','labor','fiscal','mobilitystat'];
 var activePage = 'home';
 
-function updateTabs() {
-  for (var i = 0; i < tabIds.length; i++) {
-    var el = document.getElementById('tab-' + tabIds[i]);
-    if (el) {
-      if (tabIds[i] === activePage) {
-        el.className = 'nav-tab active';
-      } else {
-        el.className = 'nav-tab';
-      }
-    }
-  }
-}
-
 function switchPage(id) {
+  window.scrollTo(0, 0);
   activePage = id;
-  updateTabs();
   var content = document.getElementById('content');
   content.style.opacity = '0';
-  content.scrollTop = 0;
   setTimeout(function() {
+    destroyCharts();
     for (var i = 0; i < pages.length; i++) { if (pages[i].id === id) { pages[i].render(); break; } }
     content.style.opacity = '1';
     window.scrollTo(0, 0);
@@ -1047,7 +1063,7 @@ document.addEventListener('keydown', function(e) {
   else if (key === '3') switchPage('fiscal');
   else if (key === '4') switchPage('mobilitystat');
 });
-try { updateTabs(); renderHome(); } catch(e) {
+try { renderHome(); } catch(e) {
   document.getElementById('content').innerHTML = '<pre style="color:#dc2626;padding:20px;">ERROR: ' + e.message + '\n' + e.stack + '</pre>';
 }
 </script>
