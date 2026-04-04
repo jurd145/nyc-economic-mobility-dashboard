@@ -38,8 +38,8 @@ CONSTRAINTS ENCOUNTERED
    Fixed by setting individual properties instead.
 
 6. API KEY SECURITY: GitHub push protection blocked commits containing
-   the Anthropic API key. Solved by moving the key to config.js
-   (gitignored) and loading via window.ANTHROPIC_KEY.
+   the Anthropic API key. Solved by routing API calls through a
+   Cloudflare Worker proxy that holds the key server-side.
 
 
 SOLUTION: SINGLE-FILE ARCHITECTURE
@@ -60,7 +60,6 @@ FILE STRUCTURE
 --------------
 nyc-dashboard/
   index.html             -- The entire dashboard (single file)
-  config.js              -- API key (gitignored, local only)
   CLAUDE.md              -- Guide for future Claude Code sessions
   CHANGELOG.md           -- Version history
   DATA_UPDATE_GUIDE.md   -- Non-developer guide for updating data
@@ -127,6 +126,7 @@ AI CHAT WIDGET
   - Sends all dashboard data to Claude claude-sonnet-4-20250514 via Anthropic API
   - Policy analyst system prompt, prose responses
   - Stateless (each question independent)
+  - API calls routed through Cloudflare Worker proxy (key server-side)
 
 
 DESIGN SYSTEM
@@ -198,8 +198,7 @@ KEY FEATURES
 
 CODE ARCHITECTURE
 -----------------
-1. config.js (gitignored) -- API key via window.ANTHROPIC_KEY
-2. isMobile detection
+1. isMobile detection
 3. Config (LAST_UPDATED, DATA_PERIOD)
 4. Color constants (var C = {...})
 5. Chart.js global defaults

@@ -12,7 +12,7 @@ Never overwrite `Chart.defaults.scale.grid` with a new object. This wipes intern
 
 ## Critical: API key security
 
-The Anthropic API key is stored in `config.js` (gitignored, never committed). The main script loads it via `window.ANTHROPIC_KEY`. Never hardcode API keys in `index.html` — GitHub push protection will block it.
+The Anthropic API key is stored server-side in a Cloudflare Worker (`round-meadow-8978.jared-05f.workers.dev`). The dashboard calls the worker, which forwards requests to Anthropic. No API key in client code. To update the key, go to Cloudflare dashboard → Workers → Settings → Variables → edit `ANTHROPIC_KEY`.
 
 ## Running the dashboard
 
@@ -23,7 +23,7 @@ python3 -m http.server 8080
 # then open http://localhost:8080
 ```
 
-For the AI chat widget to work locally, `config.js` must exist with the API key. On the live site (GitHub Pages), the chat widget gracefully shows an error if no key is present.
+The AI chat widget works both locally and on the live site — it calls the Cloudflare Worker proxy which holds the API key.
 
 All dependencies load from CDN: Chart.js 4.4.4 (jsdelivr), Tailwind CSS (cdn.tailwindcss.com), Inter font (Google Fonts). No npm, no bundler, no React.
 
@@ -42,8 +42,7 @@ Everything lives in `index.html`. Light editorial theme with accent color #1470a
 
 ### Script block structure
 
-1. **`config.js` loaded first** -- sets `window.ANTHROPIC_KEY` (gitignored)
-2. **`isMobile`** -- `window.innerWidth < 768` for responsive JS logic
+1. **`isMobile`** -- `window.innerWidth < 768` for responsive JS logic
 3. **Config variables** -- `LAST_UPDATED`, `DATA_PERIOD`
 4. **Design tokens** -- `var C = {...}` with accent #1470ad
 5. **Chart.js defaults** -- dark tooltips, light grids, Inter font
@@ -74,7 +73,7 @@ Chart instances tracked in `activeCharts[]`, destroyed via `destroyCharts()` on 
 - Questions sent to Anthropic API (Claude claude-sonnet-4-20250514) with policy analyst system prompt
 - Stateless: each question is independent, no conversation history
 - 6 suggested questions shown on open
-- API key loaded from `config.js` via `window.ANTHROPIC_KEY`
+- API calls routed through Cloudflare Worker proxy (no client-side key)
 
 ## Updating data
 
