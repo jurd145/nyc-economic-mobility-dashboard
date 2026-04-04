@@ -85,8 +85,11 @@
       .agency-metric-row > span:first-child { width: 100%; }
       .scenario-row { flex-wrap: wrap; }
       .scenario-row button { padding: 6px 12px !important; font-size: 11px !important; }
+      .hero-outer { margin-left: -16px !important; margin-right: -16px !important; margin-top: -32px !important; }
       .hero-band { padding: 48px 16px 40px 16px !important; }
       .hero-band h1 { font-size: 28px !important; }
+      .chart-tall { min-height: 300px; }
+      .chart-xtall { min-height: 320px; }
       .tree-stage1 { flex-wrap: wrap; }
       .tree-stage1 > div:first-child { flex: 1 0 100% !important; }
       .tree-stage2 { flex-wrap: wrap; }
@@ -119,8 +122,8 @@
       <span class="hide-mobile" style="font-size:12px; color:#aaaaaa;">Internal Use Only</span>
     </div>
     <div id="nav-bar" style="padding:0 40px; display:flex; align-items:center; gap:36px; border-bottom:1px solid #e8e8e5;">
-      <button class="nav-tab" id="tab-people" onclick="switchPage('people')"><span class="tab-full">People & Pipeline</span><span class="tab-short">Pipeline</span></button>
-      <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')"><span class="tab-full">Labor Market & Sectors</span><span class="tab-short">Labor</span></button>
+      <button class="nav-tab" id="tab-people" onclick="switchPage('people')"><span class="tab-full">People & Pipeline</span><span class="tab-short">People</span></button>
+      <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')"><span class="tab-full">Labor Market & Sectors</span><span class="tab-short">LMI</span></button>
       <button class="nav-tab" id="tab-fiscal" onclick="switchPage('fiscal')"><span class="tab-full">Fiscal & Economic Outlook</span><span class="tab-short">Fiscal</span></button>
       <button class="nav-tab" id="tab-mobilitystat" onclick="switchPage('mobilitystat')">MobilitySTAT</button>
     </div>
@@ -228,7 +231,7 @@ var elvSupply = { labels:[2022,2023,2024,2025,2026,2027,2028,2029,2030,2031], ba
 var pitLost = { labels:["2022","2023","2024","2025","2026","2027","2028","2029","2030","2031"], moderate:[29,77,143,213,286,362,440,521,604,690], accelerated:[29,77,143,213,288,367,450,537,627,720] };
 
 var agencies = [
-  { name:"DOE", fullName:"Department of Education", description:"K-12 outcomes, CTE pathways, dual enrollment, and credential attainment", owner:"Portfolio Owner TBD", status:"action", metrics:[
+  { name:"NYCPS", fullName:"NYC Public Schools", description:"K-12 outcomes, CTE pathways, dual enrollment, and credential attainment", owner:"Portfolio Owner TBD", status:"action", metrics:[
     {label:"HS Graduation Rate",value:"81.2%",numVal:81.2,trend:"down",sentiment:"negative",target:85,targetYear:"FY2028",lowerIsBetter:false},
     {label:"CTE Enrollment",pending:true,target:null,targetYear:null},
     {label:"Dual Enrollment Participation",pending:true,target:null,targetYear:null},
@@ -600,8 +603,8 @@ function buildAgencyCards(sorted) {
   for (var a = 0; a < sorted.length; a++) {
     var ag = sorted[a];
     var sl = ag.status === 'action' ? 'ACTION REQUIRED' : ag.status === 'watch' ? 'WATCH' : 'ON TRACK';
-    var avatarColors = {DOE:'#2563eb',CUNY:'#7c3aed',SBS:'#d97706',NYCEDC:'#059669',DYCD:'#dc2626',HRA:'#0d9488','NYC TALENT':'#1470ad'};
-    var avatarInits = {DOE:'PS',CUNY:'CU',SBS:'SB',NYCEDC:'ED',DYCD:'DY',HRA:'HR','NYC TALENT':'NT'};
+    var avatarColors = {NYCPS:'#2563eb',CUNY:'#7c3aed',SBS:'#d97706',NYCEDC:'#059669',DYCD:'#dc2626',HRA:'#0d9488','NYC TALENT':'#1470ad'};
+    var avatarInits = {NYCPS:'PS',CUNY:'CU',SBS:'SB',NYCEDC:'ED',DYCD:'DY',HRA:'HR','NYC TALENT':'NT'};
     var avBg = avatarColors[ag.name] || '#999999';
     var avIn = avatarInits[ag.name] || ag.name.substring(0,2);
     h += '<div class="agency-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div style="display:flex;align-items:center;gap:12px;"><div style="width:32px;height:32px;border-radius:50%;background:' + avBg + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#ffffff;flex-shrink:0;">' + avIn + '</div><div><div style="font-size:18px;font-weight:700;color:' + C.text + ';">' + ag.name + '</div><div style="font-size:12px;color:#999999;margin-top:2px;">' + ag.fullName + '</div></div></div><span class="status-badge status-' + ag.status + '">' + sl + '</span></div>';
@@ -654,7 +657,7 @@ function renderPeoplePipeline() {
       { label:'2019 HS Grad Baseline (' + hsBase + '%)', data:[null,null,null,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase,hsBase], borderColor:'rgba(0,0,0,0.15)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false },
       { label:'2019 Enrollment Baseline (' + ceBase + '%)', data:[null,null,null,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase,ceBase], borderColor:'rgba(0,0,0,0.10)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
-    options:{ responsive:true, aspectRatio:2.5, scales:{ y:{ min:30, max:100, ticks:{ callback:function(v){return v+'%';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'%';} } } } }
+    options:{ responsive:true, aspectRatio:isMobile?1.5:2.5, scales:{ y:{ min:isMobile?25:30, max:isMobile?90:100, ticks:{ callback:function(v){return v+'%';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'%';} } } } }
   }));
 }
 
@@ -743,7 +746,7 @@ function renderFiscalOutlook() {
       { label:'Accelerated Displacement', data:elvSupply.accelerated, borderColor:C.red, borderWidth:2.5, pointRadius:4, tension:0.3, fill:{ target:0, above:'rgba(220,38,38,0.06)' } },
       { label:'2022 Level (72.5K)', data:[72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5,72.5], borderColor:'rgba(0,0,0,0.12)', borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
     ]},
-    options:{ responsive:true, aspectRatio:2.2, scales:{ y:{ min:20, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
+    options:{ responsive:true, aspectRatio:isMobile?1.2:2.2, scales:{ y:{ min:20, max:100, ticks:{ callback:function(v){return v+'K';} } } }, plugins:{ legend:{ position:isMobile?'bottom':'top', labels:{ font:{ size:isMobile?10:12 } } }, tooltip:{ callbacks:{ label:function(ctx){return ctx.dataset.label+': '+ctx.parsed.y+'K';} } } } }
   }));
   addChart(new Chart(document.getElementById('pitLostChart'), {
     type:'bar',
@@ -829,7 +832,7 @@ function renderHome() {
   ];
   var h = '';
   // Dark hero band
-  h += '<div class="animate-in" style="background:#1a1a1a;background-image:url(https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80);background-size:cover;background-position:center;margin:-48px -40px 0 -40px;position:relative;">';
+  h += '<div class="animate-in hero-outer" style="background:#1a1a1a;background-image:url(https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80);background-size:cover;background-position:center;margin:-48px -40px 0 -40px;position:relative;">';
   h += '<div class="hero-band" style="background:rgba(0,0,0,0.75);padding:72px 40px 64px 40px;">';
   h += '<div style="max-width:1200px;margin:0 auto;">';
   h += '<h1 style="font-size:40px;font-weight:800;color:#ffffff;margin:0 0 8px 0;line-height:1.2;">New York City Economic Mobility Dashboard</h1>';
