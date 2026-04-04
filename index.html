@@ -57,9 +57,55 @@
       .metric-card, .chart-section, .agency-card, .findings-panel { background: #fff !important; border-color: #ccc !important; color: #000 !important; break-inside: avoid; }
       #nav-bar { display: none !important; }
     }
+    .tab-short { display: none; }
+    .hide-mobile { }
     @media (max-width: 768px) {
+      .tab-full { display: none; }
+      .tab-short { display: inline; }
+      .hide-mobile { display: none !important; }
+      #site-header > div:first-child { padding: 12px 16px !important; }
+      #nav-bar { gap: 16px !important; padding: 0 16px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      #nav-bar::-webkit-scrollbar { display: none; }
+      .nav-tab { font-size: 12px !important; white-space: nowrap; flex-shrink: 0; }
+      #content { padding: 32px 16px !important; }
       .home-grid { grid-template-columns: 1fr !important; }
-      #nav-bar { gap: 20px !important; }
+      .home-card img { height: 100px !important; }
+      .home-card > div:last-child { padding: 20px !important; }
+      .home-card .card-title { font-size: 18px !important; }
+      .metric-card { padding: 16px !important; }
+      .metric-card .mc-val { font-size: 22px !important; }
+      .metric-card .mc-label { font-size: 11px !important; }
+      .chart-section { padding: 20px 16px !important; margin-bottom: 32px !important; }
+      .chart-grid { grid-template-columns: 1fr !important; }
+      .findings-panel { padding: 20px !important; margin: 16px 0 32px 0 !important; }
+      .findings-panel > div:first-child { font-size: 17px !important; }
+      .agency-card { padding: 20px !important; }
+      .agency-grid { grid-template-columns: 1fr !important; }
+      .agency-metric-row { flex-wrap: wrap; gap: 4px; }
+      .agency-metric-row > span:first-child { width: 100%; }
+      .scenario-row { flex-wrap: wrap; }
+      .scenario-row button { padding: 6px 12px !important; font-size: 11px !important; }
+      .hero-band { padding: 48px 16px 40px 16px !important; }
+      .hero-band h1 { font-size: 28px !important; }
+      .tree-stage1 { flex-wrap: wrap; }
+      .tree-stage1 > div:first-child { flex: 1 0 100% !important; }
+      .tree-stage2 { flex-wrap: wrap; }
+      .tree-stage2 > div { flex: 1 1 45% !important; min-width: 0; }
+      .tree-stage3 { gap: 8px !important; }
+      .tree-stage3 .tree-block-n { font-size: 13px !important; }
+      .tree-stage3 .tree-block-l { font-size: 9px !important; }
+      .tree-wf-stats { flex-wrap: wrap; justify-content: center; }
+      .tree-wf-stats > div:not([style*="width:1px"]) { flex: 1 1 100%; text-align: center; }
+      .tree-wf-stats > div[style*="width:1px"] { display: none; }
+      .tree-wf-num { font-size: 16px !important; }
+      .tree-entry { padding: 12px 24px !important; }
+      .tree-entry-num { font-size: 20px !important; }
+      .tree-vline { height: 20px !important; }
+      footer { flex-direction: column !important; align-items: center !important; text-align: center !important; gap: 12px !important; padding: 24px 16px !important; }
+      footer > div { text-align: center !important; }
+      .src-table { display: none !important; }
+      .src-cards { display: block !important; }
+      .section-header-lg { font-size: 28px !important; }
     }
   </style>
 </head>
@@ -70,12 +116,12 @@
         <a href="https://www.squareoneed.com/" target="_blank" rel="noopener noreferrer"><img src="https://images.squarespace-cdn.com/content/v1/68b9efd6eda9040e44ba9735/d8cff8da-566a-4092-a533-0d6529e0b9e8/Square+one+%281%29.png?format=300w" alt="SquareOne" style="height:28px;display:block;" /></a>
         <span id="title-link" onclick="switchPage('home')" style="font-size:15px; font-weight:600; color:#1a1a1a; letter-spacing:0.02em;">NYC Economic Mobility Dashboard</span>
       </div>
-      <span style="font-size:12px; color:#aaaaaa;">Internal Use Only</span>
+      <span class="hide-mobile" style="font-size:12px; color:#aaaaaa;">Internal Use Only</span>
     </div>
     <div id="nav-bar" style="padding:0 40px; display:flex; align-items:center; gap:36px; border-bottom:1px solid #e8e8e5;">
-      <button class="nav-tab" id="tab-people" onclick="switchPage('people')">People & Pipeline</button>
-      <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')">Labor Market & Sectors</button>
-      <button class="nav-tab" id="tab-fiscal" onclick="switchPage('fiscal')">Fiscal & Economic Outlook</button>
+      <button class="nav-tab" id="tab-people" onclick="switchPage('people')"><span class="tab-full">People & Pipeline</span><span class="tab-short">Pipeline</span></button>
+      <button class="nav-tab" id="tab-labor" onclick="switchPage('labor')"><span class="tab-full">Labor Market & Sectors</span><span class="tab-short">Labor</span></button>
+      <button class="nav-tab" id="tab-fiscal" onclick="switchPage('fiscal')"><span class="tab-full">Fiscal & Economic Outlook</span><span class="tab-short">Fiscal</span></button>
       <button class="nav-tab" id="tab-mobilitystat" onclick="switchPage('mobilitystat')">MobilitySTAT</button>
     </div>
   </div>
@@ -92,6 +138,7 @@
   </footer>
 
 <script>
+var isMobile = window.innerWidth < 768;
 var LAST_UPDATED = 'April 2026';
 var DATA_PERIOD = 'DEC 2025 DATA';
 var C = { bg:'#ffffff', card:'#f9f9f7', border:'#e8e8e5', text:'#1a1a1a', body:'#333333', muted:'#888888', dim:'#aaaaaa', blue:'#2563eb', green:'#059669', red:'#dc2626', amber:'#d97706', indigo:'#4f46e5', purple:'#7c3aed', cyan:'#0891b2', light:'#999999', offwhite:'#f7f7f5' };
@@ -423,7 +470,7 @@ function pathBlock(bg, n, label, pct, flex, small) {
     '<div style="font-size:' + lSize + ';color:rgba(255,255,255,0.8);margin-top:2px;">' + label + '</div>' +
     '<div style="font-size:' + (small?'8':'10') + 'px;color:rgba(255,255,255,0.6);">' + pct + '%</div></div>';
 }
-function vLine(h) { return '<div style="width:2px;height:' + (h||32) + 'px;background:#e8e8e5;margin:0 auto;"></div>'; }
+function vLine(h) { return '<div class="tree-vline" style="width:2px;height:' + (h||32) + 'px;background:#e8e8e5;margin:0 auto;"></div>'; }
 
 function buildPathwayTree() {
   var d = pathwayData;
@@ -436,10 +483,10 @@ function buildPathwayTree() {
   }
   h += '</div>';
   // Entry
-  h += '<div style="text-align:center;"><div style="display:inline-block;background:#1470ad;color:#fff;padding:16px 40px;border-radius:10px;"><div style="font-size:24px;font-weight:700;">' + d.cohortSize.toLocaleString() + '</div><div style="font-size:13px;opacity:0.7;">enter 9th grade</div></div></div>';
+  h += '<div style="text-align:center;"><div class="tree-entry" style="display:inline-block;background:#1470ad;color:#fff;padding:16px 40px;border-radius:10px;"><div class="tree-entry-num" style="font-size:24px;font-weight:700;">' + d.cohortSize.toLocaleString() + '</div><div style="font-size:13px;opacity:0.7;">enter 9th grade</div></div></div>';
   h += vLine(32);
   // Stage 1: HS outcomes
-  h += '<div style="display:flex;gap:8px;margin-bottom:4px;">';
+  h += '<div class="tree-stage1" style="display:flex;gap:8px;margin-bottom:4px;">';
   h += pathBlock('#059669', d.graduated4yr.n, 'Graduated 4yr', d.graduated4yr.pct, d.graduated4yr.pct, false);
   h += pathBlock('#d97706', d.graduated56yr.n, '5\u20136yr grad', d.graduated56yr.pct, d.graduated56yr.pct, true);
   h += pathBlock('#dc2626', d.droppedOut.n, 'Dropped out', d.droppedOut.pct, d.droppedOut.pct, true);
@@ -448,7 +495,7 @@ function buildPathwayTree() {
   // Line from graduated block
   h += '<div style="display:flex;"><div style="flex:' + d.graduated4yr.pct + ';display:flex;justify-content:center;">' + vLine(28) + '</div><div style="flex:' + (100 - d.graduated4yr.pct) + ';"></div></div>';
   // Stage 2: Where grads go
-  h += '<div style="display:flex;gap:6px;margin-bottom:4px;">';
+  h += '<div class="tree-stage2" style="display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap;">';
   h += pathBlock('#059669', d.cuny2yr.n, 'CUNY 2-yr', d.cuny2yr.pct, d.cuny2yr.pct, true);
   h += pathBlock('#0d9488', d.cuny4yr.n, 'CUNY 4-yr', d.cuny4yr.pct, d.cuny4yr.pct, true);
   h += pathBlock('#2563eb', d.private4yr.n, 'Private 4-yr', d.private4yr.pct, d.private4yr.pct, true);
@@ -460,7 +507,7 @@ function buildPathwayTree() {
   var restFlex = 100 - cunyFlex;
   h += '<div style="display:flex;"><div style="flex:' + d.cuny2yr.pct + ';display:flex;justify-content:center;">' + vLine(24) + '</div><div style="flex:' + d.cuny4yr.pct + ';display:flex;justify-content:center;">' + vLine(24) + '</div><div style="flex:' + restFlex + ';"></div></div>';
   // Stage 3: CUNY outcomes
-  h += '<div style="display:flex;gap:20px;margin-bottom:4px;">';
+  h += '<div class="tree-stage3" style="display:flex;gap:20px;margin-bottom:4px;">';
   // Left: 2-year
   h += '<div style="flex:1;"><div style="font-size:12px;font-weight:600;color:#1a1a1a;text-align:center;margin-bottom:8px;">CUNY 2-year: 3-year outcomes</div>';
   h += '<div style="margin-bottom:6px;">' + pathBlock('#059669', d.cuny2yrCompleted.n, 'Completed', d.cuny2yrCompleted.pct, 1, false) + '</div>';
@@ -479,12 +526,12 @@ function buildPathwayTree() {
   h += '<div style="font-size:12px;font-weight:500;color:#999999;letter-spacing:0.5px;text-transform:uppercase;">Workforce Entry</div>';
   var totalCompleters = d.cuny2yrCompleted.n + d.cuny4yrCompleted.n;
   h += '<div style="font-size:20px;font-weight:700;color:#1a1a1a;margin-top:6px;">~' + totalCompleters.toLocaleString() + ' CUNY completers</div>';
-  h += '<div style="display:flex;justify-content:center;gap:24px;margin-top:16px;">';
-  h += '<div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#059669;">' + d.paidInternship + '%</div><div style="font-size:10px;color:#999999;">had a paid internship</div></div>';
+  h += '<div class="tree-wf-stats" style="display:flex;justify-content:center;gap:24px;margin-top:16px;">';
+  h += '<div style="text-align:center;"><div class="tree-wf-num" style="font-size:20px;font-weight:700;color:#059669;">' + d.paidInternship + '%</div><div style="font-size:10px;color:#999999;">had a paid internship</div></div>';
   h += '<div style="width:1px;background:#e8e8e5;"></div>';
-  h += '<div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#d97706;">' + d.employedWithin1yr + '%</div><div style="font-size:10px;color:#999999;">employed within 1 year</div></div>';
+  h += '<div style="text-align:center;"><div class="tree-wf-num" style="font-size:20px;font-weight:700;color:#d97706;">' + d.employedWithin1yr + '%</div><div style="font-size:10px;color:#999999;">employed within 1 year</div></div>';
   h += '<div style="width:1px;background:#e8e8e5;"></div>';
-  h += '<div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#dc2626;">1 in ' + d.retailFoodSvc + '</div><div style="font-size:10px;color:#999999;">in retail/food svc 5yr later</div></div>';
+  h += '<div style="text-align:center;"><div class="tree-wf-num" style="font-size:20px;font-weight:700;color:#dc2626;">1 in ' + d.retailFoodSvc + '</div><div style="font-size:10px;color:#999999;">in retail/food svc 5yr later</div></div>';
   h += '</div></div></div>';
   // Callout
   h += '<div style="background:#f7f7f5;border-left:4px solid #1a1a1a;border-radius:0 12px 12px 0;padding:20px 24px;margin-top:40px;">';
@@ -549,7 +596,7 @@ function buildAgencyCards(sorted) {
     h += '<div style="background:' + sumItems[s][1] + ';border-radius:10px;padding:12px 20px;display:flex;align-items:center;gap:10px;"><span class="status-dot" style="background:' + sumItems[s][0] + ';"></span><span style="font-size:13px;color:#666666;">' + sumItems[s][2] + '</span><span style="font-size:20px;font-weight:700;color:' + sumItems[s][0] + ';">' + sumItems[s][3] + '</span></div>';
   }
   h += '</div><p style="font-size:12px;color:#aaaaaa;margin:0 0 24px 0;font-style:italic;">Targets are proposed benchmarks. Status auto-calculated: \u2265100% of target = On Track, 80\u201399% = Watch, &lt;80% = Action Required.</p>';
-  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;">';
+  h += '<div class="agency-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;">';
   for (var a = 0; a < sorted.length; a++) {
     var ag = sorted[a];
     var sl = ag.status === 'action' ? 'ACTION REQUIRED' : ag.status === 'watch' ? 'WATCH' : 'ON TRACK';
@@ -563,7 +610,7 @@ function buildAgencyCards(sorted) {
       var m = ag.metrics[mi];
       var sep = mi < ag.metrics.length - 1 ? 'border-bottom:1px solid #f2f2f0;' : '';
       var st = metricStatus(m);
-      h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + sep + '">';
+      h += '<div class="agency-metric-row" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;' + sep + '">';
       h += '<span style="font-size:13px;color:#444444;flex:1;">' + m.label + '</span>';
       if (m.pending) {
         h += '<span class="data-pending" style="font-size:13px;color:#bbbbbb;font-style:italic;margin-right:10px;">Data pending</span>';
@@ -619,7 +666,7 @@ function renderLaborMarket() {
     '<div class="animate-in" style="animation-delay:0.16s;">' + metricCardsHTML(employmentMetrics) + '</div>' +
     '<div class="animate-in" style="animation-delay:0.24s;">' + chartBox('sectorChart', 'Employment Change by Sector \u2014 Over-the-Year', 'Source: NYS DOL, BLS QCEW.',
       '<p style="font-size:12px;color:' + C.amber + ';margin-top:8px;">\u26A0 After benchmark revisions, gains in Prof & Business Svcs and Information are expected to be revised away (NYC Comptroller, Feb 2026).</p>') + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.32s;display:grid;grid-template-columns:1fr 1fr;gap:24px;">' +
+    '<div class="animate-in chart-grid" style="animation-delay:0.32s;display:grid;grid-template-columns:1fr 1fr;gap:24px;">' +
     chartBox('jobCreationChart', 'Private Sector Job Creation \u2014 Jan\u2013Jul by Year (thousands)', 'Source: NYS DOL.') +
     chartBox('entryLevelChart', 'Entry-Level Job Postings 2019\u20132024 (thousands)', 'Source: Lightcast / NYCEDC.') + '</div>';
   destroyCharts();
@@ -652,10 +699,10 @@ function renderFiscalOutlook() {
     guidingQuestions('Can the city\u2019s tax base sustain current spending levels? What happens to revenue if hiring trends and AI displacement continue? What is the fiscal cost of inaction?') + '</div>' +
     '<div class="animate-in" style="animation-delay:0.08s;">' + generateFindings('fiscal') + '</div>' +
     '<div class="animate-in" style="animation-delay:0.16s;">' + metricCardsHTML(fiscalMetrics) + '</div>' +
-    '<div class="animate-in" style="animation-delay:0.24s;display:grid;grid-template-columns:1fr 2fr;gap:24px;">' +
+    '<div class="animate-in chart-grid" style="animation-delay:0.24s;display:grid;grid-template-columns:1fr 2fr;gap:24px;">' +
     chartBox('taxDonut', 'FY2026 Tax Revenue by Source', 'Source: NYC OMB.') +
     '<div class="chart-section"><div class="chart-title">Revenue Projections FY2025\u2013FY2030 ($B) \u2014 Three Scenarios</div>' +
-    '<div style="display:flex;gap:12px;margin-bottom:20px;">' +
+    '<div class="scenario-row" style="display:flex;gap:12px;margin-bottom:20px;">' +
     '<button class="scenario-btn" id="scen-0" onclick="selectScenario(0)" style="background:#ffffff;border:1px solid #e8e8e5;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:500;color:#888888;cursor:pointer;transition:all 0.15s;" onmouseover="if(this.className.indexOf(\'active\')<0){this.style.background=\'#f7f7f5\';this.style.color=\'#333333\';}" onmouseout="if(this.className.indexOf(\'active\')<0){this.style.background=\'#ffffff\';this.style.color=\'#888888\';}">OMB Forecast</button>' +
     '<button class="scenario-btn active" id="scen-1" onclick="selectScenario(1)" style="background:#1470ad;border:1px solid #1470ad;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:600;color:#ffffff;cursor:pointer;transition:all 0.15s;">Comptroller Forecast</button>' +
     '<button class="scenario-btn" id="scen-2" onclick="selectScenario(2)" style="background:#ffffff;border:1px solid #e8e8e5;border-radius:8px;padding:8px 20px;font-size:13px;font-weight:500;color:#888888;cursor:pointer;transition:all 0.15s;" onmouseover="if(this.className.indexOf(\'active\')<0){this.style.background=\'#f7f7f5\';this.style.color=\'#333333\';}" onmouseout="if(this.className.indexOf(\'active\')<0){this.style.background=\'#ffffff\';this.style.color=\'#888888\';}">Stagnation Scenario</button>' +
@@ -783,7 +830,7 @@ function renderHome() {
   var h = '';
   // Dark hero band
   h += '<div class="animate-in" style="background:#1a1a1a;background-image:url(https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1920&q=80);background-size:cover;background-position:center;margin:-48px -40px 0 -40px;position:relative;">';
-  h += '<div style="background:rgba(0,0,0,0.75);padding:72px 40px 64px 40px;">';
+  h += '<div class="hero-band" style="background:rgba(0,0,0,0.75);padding:72px 40px 64px 40px;">';
   h += '<div style="max-width:1200px;margin:0 auto;">';
   h += '<h1 style="font-size:40px;font-weight:800;color:#ffffff;margin:0 0 8px 0;line-height:1.2;">New York City Economic Mobility Dashboard</h1>';
   h += '<div style="font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Office of the Deputy Mayor for Economic Justice</div>';
@@ -845,7 +892,8 @@ function renderSources() {
     ['Brookings Institution', 'https://www.brookings.edu/', 'Apprenticeship evidence base, employer ROI research', 'As published', '"Building an Evidence Base for Apprenticeships" (January 2026)'],
     ['TNTP', 'https://tntp.org/', 'Career pathway credential alignment research (18% alignment finding)', 'As published', '"Most Career Pathway Programs Aren\'t Preparing Students for Good Jobs" (September 2025)']
   ];
-  h += '<div style="overflow-x:auto;margin-bottom:48px;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  // Desktop table
+  h += '<div class="src-table" style="overflow-x:auto;margin-bottom:48px;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
   h += '<thead><tr style="background:#f7f7f5;">';
   h += '<th style="text-align:left;padding:14px 20px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:20%;">Source</th>';
   h += '<th style="text-align:left;padding:14px 20px;font-size:12px;font-weight:600;color:#1a1a1a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8e8e5;width:40%;">What it provides</th>';
@@ -863,6 +911,18 @@ function renderSources() {
     h += '</tr>';
   }
   h += '</tbody></table></div>';
+  // Mobile cards
+  h += '<div class="src-cards" style="display:none;margin-bottom:48px;">';
+  for (var i = 0; i < sources.length; i++) {
+    var s = sources[i];
+    h += '<div style="background:#f9f9f7;border-radius:10px;padding:16px;margin-bottom:12px;">';
+    h += '<div style="font-weight:600;font-size:15px;margin-bottom:8px;"><a href="' + s[1] + '" target="_blank" rel="noopener noreferrer" style="color:#1470ad;text-decoration:none;">' + s[0] + '</a></div>';
+    h += '<div style="margin-bottom:6px;"><span style="font-weight:500;color:#999999;font-size:11px;">Provides: </span><span style="font-size:13px;color:#333333;">' + s[2] + '</span></div>';
+    h += '<div style="margin-bottom:6px;"><span style="font-weight:500;color:#999999;font-size:11px;">Frequency: </span><span style="font-size:13px;color:#333333;">' + s[3] + '</span></div>';
+    h += '<div><span style="font-weight:500;color:#999999;font-size:11px;">Most recent: </span><span style="font-size:13px;color:#333333;">' + s[4] + '</span></div>';
+    h += '</div>';
+  }
+  h += '</div>';
   h += '<h2 style="font-size:20px;font-weight:700;color:#1a1a1a;margin:0 0 24px 0;">Methodology</h2>';
   var methods = [
     ['Revenue projection scenarios (Layer 3)',
